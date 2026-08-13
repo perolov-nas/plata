@@ -46,6 +46,16 @@ function plata_get_color_fields() {
 			'default' => '#e5e5e5',
 			'group'   => 'surface',
 		),
+		'header_bg'    => array(
+			'label'   => __( 'Bakgrund header', 'plata' ),
+			'default' => '#ffffff',
+			'group'   => 'surface',
+		),
+		'footer_bg'    => array(
+			'label'   => __( 'Bakgrund footer', 'plata' ),
+			'default' => '#f5f5f5',
+			'group'   => 'surface',
+		),
 		'link'         => array(
 			'label'   => __( 'Länkfärg', 'plata' ),
 			'default' => '#0b57d0',
@@ -676,7 +686,7 @@ function plata_render_settings_page() {
 		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 		<p><?php esc_html_e( 'Justera temats logotyp, layout, typsnitt och färger. Ändringarna gäller globalt på webbplatsen.', 'plata' ); ?></p>
 
-		<form method="post" action="options.php">
+		<form id="plata-settings-form" method="post" action="options.php">
 			<?php settings_fields( 'plata_settings' ); ?>
 
 			<h2><?php esc_html_e( 'Webbplats', 'plata' ); ?></h2>
@@ -809,29 +819,38 @@ function plata_render_settings_page() {
 				</table>
 			<?php endforeach; ?>
 
-			<div class="plata-settings-actions">
-				<?php submit_button( __( 'Spara inställningar', 'plata' ), 'primary', 'submit', false ); ?>
-			</div>
 		</form>
 
-		<form
-			method="post"
-			action=""
-			class="plata-reset-form"
-			onsubmit="return confirm('<?php echo esc_js( __( 'Återställ alla tema-inställningar till standard?', 'plata' ) ); ?>');"
-		>
-			<?php wp_nonce_field( 'plata_reset_settings' ); ?>
-			<?php submit_button( __( 'Återställ till standard', 'plata' ), 'secondary', 'plata_reset_settings', false ); ?>
-		</form>
+		<div class="plata-settings-actions">
+			<?php
+			submit_button(
+				__( 'Spara inställningar', 'plata' ),
+				'primary',
+				'submit',
+				false,
+				array( 'form' => 'plata-settings-form' )
+			);
+			?>
+			<form
+				method="post"
+				action=""
+				class="plata-reset-form"
+				onsubmit="return confirm('<?php echo esc_js( __( 'Återställ alla tema-inställningar till standard?', 'plata' ) ); ?>');"
+			>
+				<?php wp_nonce_field( 'plata_reset_settings' ); ?>
+				<?php submit_button( __( 'Återställ till standard', 'plata' ), 'secondary', 'plata_reset_settings', false ); ?>
+			</form>
+		</div>
 		<style>
-			.plata-settings-actions,
-			.plata-reset-form {
-				display: inline-block;
-				vertical-align: middle;
+			.plata-settings-actions {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				gap: 0.5em;
 				margin: 1.5em 0;
 			}
 			.plata-reset-form {
-				margin-left: 0.5em;
+				margin: 0;
 			}
 			.plata-media-preview {
 				margin-bottom: 0.75rem;
@@ -1009,6 +1028,8 @@ function plata_get_css_variables() {
 		'background'   => '--color-background',
 		'surface'      => '--color-surface',
 		'border'       => '--color-border',
+		'header_bg'    => '--color-header-bg',
+		'footer_bg'    => '--color-footer-bg',
 		'link'         => '--color-link',
 		'link_hover'   => '--color-link-hover',
 		'link_focus'   => '--color-link-focus',
@@ -1105,6 +1126,70 @@ function plata_add_editor_settings_styles( $settings ) {
 	return $settings;
 }
 add_filter( 'block_editor_settings_all', 'plata_add_editor_settings_styles' );
+
+/**
+ * Temats färger formaterade som en theme.json-palett.
+ *
+ * @return array<int, array{slug: string, name: string, color: string}>
+ */
+function plata_get_editor_color_palette() {
+	$colors  = plata_get_colors();
+	$palette = array();
+
+	foreach ( plata_get_color_fields() as $key => $field ) {
+		if ( ! isset( $colors[ $key ] ) ) {
+			continue;
+		}
+
+		$palette[] = array(
+			'slug'  => 'plata-' . str_replace( '_', '-', $key ),
+			'name'  => $field['label'],
+			'color' => $colors[ $key ],
+		);
+	}
+
+	return $palette;
+}
+
+/**
+ * Gör temats färger valbara i blockredigerarens färgpalett.
+ *
+ * Färgerna skrivs som hex-värden eftersom palettens förhandsvisningar i
+ * sidopanelen ligger utanför redigerarens iframe och därför inte når
+ * temats CSS-variabler.
+ *
+ * @param WP_Theme_JSON_Data $theme_json Temats theme.json-data.
+ * @return WP_Theme_JSON_Data
+ */
+function plata_add_colors_to_theme_json( $theme_json ) {
+	return $theme_json->update_with(
+		array(
+			'version'  => 3,
+			'settings' => array(
+				'color' => array(
+					'custom'         => true,
+					'customGradient' => true,
+					'palette'        => plata_get_editor_color_palette(),
+				),
+			),
+		)
+	);
+}
+add_filter( 'wp_theme_json_data_theme', 'plata_add_colors_to_theme_json' );
+
+/**
+ * Töm cachad theme.json-data när färgerna sparas.
+ *
+ * WordPress cachar de globala stilarna, så paletten skulle annars kunna
+ * ligga kvar med gamla värden vid persistent objektcache.
+ */
+function plata_flush_theme_json_cache() {
+	if ( function_exists( 'wp_clean_theme_json_cache' ) ) {
+		wp_clean_theme_json_cache();
+	}
+}
+add_action( 'add_option_plata_colors', 'plata_flush_theme_json_cache' );
+add_action( 'update_option_plata_colors', 'plata_flush_theme_json_cache' );
 
 /**
  * Använd vald favicon som webbplatsikon.
