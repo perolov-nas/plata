@@ -1,0 +1,18 @@
+{
+  "name": "plata",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WordPress-temat Platå",
+  "scripts": {
+    "css": "sass assets/src/scss/style.scss assets/dist/css/style.min.css --style=compressed --no-source-map",
+    "css:watch": "sass assets/src/scss/style.scss assets/dist/css/style.min.css --style=compressed --no-source-map --watch",
+    "js": "esbuild assets/src/js/main.js assets/src/js/admin-settings.js --bundle --minify --outdir=assets/dist/js --out-extension:.js=.min.js",
+    "js:watch": "esbuild assets/src/js/main.js assets/src/js/admin-settings.js --bundle --minify --outdir=assets/dist/js --out-extension:.js=.min.js --watch",
+    "build": "npm run css && npm run js",
+    "watch": "npm run css:watch & npm run js:watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "sass": "^1.85.0"
+  }
+}
