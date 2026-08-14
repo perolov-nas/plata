@@ -3,6 +3,7 @@
 :root {
 	--font-body: system-ui, sans-serif;
 	--font-heading: system-ui, sans-serif;
+	--font-size-root: 16px;
 
 	// Typskala: minvärdet gäller vid 600px och nedåt, maxvärdet från 1200px.
 	// rem + vw (aldrig enbart vw) så att texten fortfarande följer webbläsarens
@@ -53,6 +54,7 @@ html {
 	// Hindrar iOS från att skala om text i liggande läge.
 	-webkit-text-size-adjust: 100%;
 	scroll-behavior: smooth;
+	font-size: var(--font-size-root);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -78,7 +80,7 @@ h5,
 h6 {
 	font-family: var(--font-heading);
 	line-height: var(--line-height-heading);
-	color: var(--color-heading);
+	color: var(--color-text);
 	text-wrap: balance;
 }
 
@@ -95,6 +97,11 @@ h2 {
 h3 {
 	font-size: var(--font-size-xl);
 	margin-block-start: 2em!important;
+
+	// first h3 should have margin-block-start: 0em!important, otherwise it will be too close to the h2
+	&:first-child {
+		margin-block-start: 0.5em!important;
+	}
 }
 
 h4 {
@@ -812,7 +819,7 @@ $toc-breakpoint: 64em;
 }
 
 .footer-nav a {
-	color: inherit;
+	color: var(--color-text);
 	text-decoration: none;
 	// Ger linjen luft från underlängderna i g, j och p.
 	padding-block-end: 0.2em;
@@ -836,6 +843,7 @@ $toc-breakpoint: 64em;
 
 .footer-copy {
 	margin: 0;
+	color: var(--color-text);
 }
 
 // Länkar som lämnar webbplatsen
@@ -987,7 +995,7 @@ $toc-breakpoint: 64em;
 .wp-block-table :is(thead th, .plata-table__header-row th) {
 	background: var(--color-surface);
 	font-weight: 700;
-	color: var(--color-heading);
+	color: var(--color-text);
 	border-block-end: 2px solid var(--color-border);
 }
 
@@ -1050,7 +1058,7 @@ $toc-breakpoint: 64em;
 	.plata-table--stacked [data-label]::before {
 		content: attr(data-label);
 		font-weight: 700;
-		color: var(--color-heading);
+		color: var(--color-text);
 	}
 
 	// Första cellen fungerar som rubrik för kortet.

@@ -210,7 +210,7 @@ function plata_get_available_fonts() {
 }
 
 /**
- * Typografi-fält.
+ * Typografi-fält (typsnitt).
  *
  * @return array<string, array{label: string, default: string}>
  */
@@ -228,20 +228,52 @@ function plata_get_typography_fields() {
 }
 
 /**
+ * Standardstorlek för rotens font-size (px).
+ *
+ * @return int
+ */
+function plata_get_default_base_font_size() {
+	return 16;
+}
+
+/**
+ * Håll basstorleken inom ett rimligt spann.
+ *
+ * @param mixed $size     Storlek i pixlar.
+ * @param int   $fallback Värde att använda när indata saknas.
+ * @return int
+ */
+function plata_clamp_base_font_size( $size, $fallback ) {
+	$size = (int) $size;
+
+	if ( $size <= 0 ) {
+		$size = $fallback;
+	}
+
+	return max( 12, min( 24, $size ) );
+}
+
+/**
  * Hämta sparad typografi.
  *
- * @return array<string, string>
+ * @return array{body: string, heading: string, base_size: int}
  */
 function plata_get_typography() {
-	$saved  = get_option( 'plata_typography', array() );
-	$fields = plata_get_typography_fields();
-	$fonts  = plata_get_available_fonts();
-	$out    = array();
+	$saved      = get_option( 'plata_typography', array() );
+	$fields     = plata_get_typography_fields();
+	$fonts      = plata_get_available_fonts();
+	$out        = array();
+	$default_px = plata_get_default_base_font_size();
 
 	foreach ( $fields as $key => $field ) {
-		$slug = isset( $saved[ $key ] ) ? sanitize_title( $saved[ $key ] ) : $field['default'];
+		$slug        = isset( $saved[ $key ] ) ? sanitize_title( $saved[ $key ] ) : $field['default'];
 		$out[ $key ] = isset( $fonts[ $slug ] ) ? $slug : $field['default'];
 	}
+
+	$out['base_size'] = plata_clamp_base_font_size(
+		isset( $saved['base_size'] ) ? $saved['base_size'] : $default_px,
+		$default_px
+	);
 
 	return $out;
 }
@@ -448,21 +480,24 @@ function plata_sanitize_colors( $input ) {
  * Sanera typografi.
  *
  * @param mixed $input Indata från formulär.
- * @return array<string, string>
+ * @return array{body?: string, heading?: string, base_size: int}
  */
 function plata_sanitize_typography( $input ) {
-	$clean  = array();
-	$fields = plata_get_typography_fields();
-	$fonts  = plata_get_available_fonts();
-
-	if ( ! is_array( $input ) ) {
-		return $clean;
-	}
+	$clean      = array();
+	$fields     = plata_get_typography_fields();
+	$fonts      = plata_get_available_fonts();
+	$default_px = plata_get_default_base_font_size();
+	$input      = is_array( $input ) ? $input : array();
 
 	foreach ( $fields as $key => $field ) {
-		$slug = isset( $input[ $key ] ) ? sanitize_title( $input[ $key ] ) : $field['default'];
+		$slug          = isset( $input[ $key ] ) ? sanitize_title( $input[ $key ] ) : $field['default'];
 		$clean[ $key ] = isset( $fonts[ $slug ] ) ? $slug : $field['default'];
 	}
+
+	$clean['base_size'] = plata_clamp_base_font_size(
+		isset( $input['base_size'] ) ? $input['base_size'] : $default_px,
+		$default_px
+	);
 
 	return $clean;
 }
@@ -521,7 +556,7 @@ function plata_get_default_colors() {
 /**
  * Standardtypografi.
  *
- * @return array<string, string>
+ * @return array{body: string, heading: string, base_size: int}
  */
 function plata_get_default_typography() {
 	$defaults = array();
@@ -529,6 +564,8 @@ function plata_get_default_typography() {
 	foreach ( plata_get_typography_fields() as $key => $field ) {
 		$defaults[ $key ] = $field['default'];
 	}
+
+	$defaults['base_size'] = plata_get_default_base_font_size();
 
 	return $defaults;
 }
@@ -743,6 +780,27 @@ function plata_render_settings_page() {
 						</td>
 					</tr>
 				<?php endforeach; ?>
+				<tr>
+					<th scope="row">
+						<label for="plata_base_font_size"><?php esc_html_e( 'Basstorlek', 'plata' ); ?></label>
+					</th>
+					<td>
+						<input
+							type="number"
+							id="plata_base_font_size"
+							name="plata_typography[base_size]"
+							value="<?php echo esc_attr( (string) $typography['base_size'] ); ?>"
+							min="12"
+							max="24"
+							step="1"
+							class="small-text"
+						/>
+						<span>px</span>
+						<p class="description">
+							<?php esc_html_e( 'Rotens textstorlek (standard 16). Hela typskalan skalar utifrån detta värde.', 'plata' ); ?>
+						</p>
+					</td>
+				</tr>
 			</table>
 
 			<h2><?php esc_html_e( 'Layout', 'plata' ); ?></h2>
@@ -919,7 +977,9 @@ function plata_get_selected_font_faces() {
 	$faces      = array();
 	$seen       = array();
 
-	foreach ( $typography as $slug ) {
+	foreach ( array( 'body', 'heading' ) as $key ) {
+		$slug = isset( $typography[ $key ] ) ? $typography[ $key ] : '';
+
 		if ( empty( $fonts[ $slug ] ) || isset( $seen[ $slug ] ) ) {
 			continue;
 		}
@@ -1055,6 +1115,7 @@ function plata_get_css_variables() {
 
 	$rules[] = '--font-body: ' . $body_family . ';';
 	$rules[] = '--font-heading: ' . $heading_family . ';';
+	$rules[] = '--font-size-root: ' . (int) $typography['base_size'] . 'px;';
 	$rules[] = '--layout-content: ' . $layout['content_width'] . 'px;';
 	$rules[] = '--layout-wide: ' . $layout['wide_width'] . 'px;';
 
