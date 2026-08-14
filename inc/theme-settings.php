@@ -1194,17 +1194,27 @@ add_filter( 'block_editor_settings_all', 'plata_add_editor_settings_styles' );
  * @return array<int, array{slug: string, name: string, color: string}>
  */
 function plata_get_editor_color_palette() {
-	$colors  = plata_get_colors();
-	$palette = array();
+	$colors      = plata_get_colors();
+	$palette     = array();
+	$seen_colors = array();
 
-	foreach ( plata_get_color_fields() as $key => $field ) {
+	foreach ( array_keys( plata_get_color_fields() ) as $key ) {
 		if ( ! isset( $colors[ $key ] ) ) {
 			continue;
 		}
 
+		$normalized_color = strtolower( $colors[ $key ] );
+
+		if ( isset( $seen_colors[ $normalized_color ] ) ) {
+			continue;
+		}
+
+		$seen_colors[ $normalized_color ] = true;
+
 		$palette[] = array(
 			'slug'  => 'plata-' . str_replace( '_', '-', $key ),
-			'name'  => $field['label'],
+			/* translators: %d: Färgens ordningsnummer i paletten. */
+			'name'  => sprintf( __( 'Temafärg %d', 'plata' ), count( $palette ) + 1 ),
 			'color' => $colors[ $key ],
 		);
 	}
