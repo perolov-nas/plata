@@ -1,0 +1,27 @@
+:root :where(.is-layout-constrained) > * {
+	margin-inline: auto;
+}
+
+:root :where(.is-layout-constrained) > * {
+	margin-block-start: 1em;
+}
+
+.site-main {
+	max-width: var(--layout-content);
+	margin-inline: auto;
+	padding: 0 2rem;
+
+	@media (max-width: 1200px) {
+		padding: 0 1.5rem;
+	}
+
+	@media (max-width: 600px) {
+		padding: 0 1rem;
+	}
+}
+
+.entry-content > p,
+.entry-content > ul,
+.entry-content > ol {
+	max-width: var(--measure);
+}

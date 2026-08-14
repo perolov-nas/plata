@@ -1,0 +1,106 @@
+// Tabeller
+
+// Container query istället för media query: tabellen ska stapla utifrån
+// utrymmet den faktiskt har, inte fönstrets bredd. Annars staplar den för
+// sent i mallar där innehållet ligger i en smal spalt bredvid något annat.
+.wp-block-table {
+	container: plata-table / inline-size;
+	margin-block: 1.5rem;
+	overflow-x: auto;
+}
+
+.wp-block-table table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: var(--font-size-sm);
+}
+
+// WordPress sätter "border: 1px solid" utan färg på varje cell, vilket blir
+// textfärgen, och en 3px linje under thead. De nollställs här så att bara
+// temats egna linjer syns och inte skär igenom kortens rundade hörn.
+.wp-block-table thead {
+	border-block-end: 0;
+}
+
+.wp-block-table :is(th, td) {
+	padding: 0.75rem 1rem;
+	text-align: start;
+	vertical-align: top;
+	border: 0;
+	border-block-end: 1px solid var(--color-border);
+}
+
+.wp-block-table :is(thead th, .plata-table__header-row th) {
+	background: var(--color-surface);
+	font-weight: 700;
+	color: var(--color-text);
+	border-block-end: 2px solid var(--color-border);
+}
+
+.wp-block-table tbody tr:last-child :is(th, td) {
+	border-block-end: 0;
+}
+
+.wp-block-table figcaption {
+	margin-block-start: 0.5rem;
+	color: var(--color-text-muted);
+}
+
+// När tabellen scrollar i sidled gör JavaScript den fokuserbar, och då
+// behöver fokusmarkeringen synas innanför kanten.
+.wp-block-table[tabindex]:focus-visible {
+	outline: 2px solid var(--color-focus);
+	outline-offset: -2px;
+}
+
+@container plata-table (max-width: 40rem) {
+	.plata-table--stacked,
+	.plata-table--stacked tbody,
+	.plata-table--stacked tr,
+	.plata-table--stacked :is(th, td) {
+		display: block;
+		width: 100%;
+	}
+
+	// Rubrikerna upprepas i varje cell, så själva rubrikraden är överflödig.
+	.plata-table--stacked thead,
+	.plata-table--stacked .plata-table__header-row {
+		display: none;
+	}
+
+	.plata-table--stacked tr {
+		margin-block-end: 1rem;
+		border: 1px solid var(--color-border);
+		border-radius: 0.5rem;
+		overflow: hidden;
+	}
+
+	.plata-table--stacked tr:last-child {
+		margin-block-end: 0;
+	}
+
+	.plata-table--stacked :is(th, td) {
+		border-block-end: 1px solid var(--color-border);
+	}
+
+	.plata-table--stacked tr :is(th, td):last-child {
+		border-block-end: 0;
+	}
+
+	.plata-table--stacked [data-label] {
+		display: grid;
+		grid-template-columns: minmax(5rem, 35%) 1fr;
+		gap: 0.25rem 1rem;
+	}
+
+	.plata-table--stacked [data-label]::before {
+		content: attr(data-label);
+		font-weight: 700;
+		color: var(--color-text);
+	}
+
+	// Första cellen fungerar som rubrik för kortet.
+	.plata-table--stacked tbody tr :is(th, td):first-child {
+		background: var(--color-surface);
+	}
+}

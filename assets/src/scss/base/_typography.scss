@@ -1,0 +1,111 @@
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--font-heading);
+	line-height: var(--line-height-heading);
+	color: var(--color-text);
+	text-wrap: balance;
+}
+
+h1 {
+	font-size: var(--font-size-3xl);
+	line-height: var(--line-height-display);
+}
+
+h2 {
+	font-size: var(--font-size-2xl);
+	margin-block-start: 2em !important;
+}
+
+h3 {
+	font-size: var(--font-size-xl);
+	margin-block-start: 2em !important;
+
+	// first h3 should have margin-block-start: 0em!important, otherwise it will be too close to the h2
+	&:first-child {
+		margin-block-start: 0.5em !important;
+	}
+}
+
+h4 {
+	font-size: var(--font-size-lg);
+	margin-block-start: 2em !important;
+}
+
+h5 {
+	font-size: var(--font-size-md);
+	margin-block-start: 2em !important;
+}
+
+h6 {
+	font-size: var(--font-size-base);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin-block-start: 2em !important;
+}
+
+p,
+li,
+dd {
+	text-wrap: pretty;
+}
+
+p {
+	margin-block: 0 1em;
+
+	&:first-of-type {
+		margin-block-start: 0 !important;
+	}
+}
+
+small,
+.text-small,
+figcaption {
+	font-size: var(--font-size-sm);
+}
+
+.lead {
+	font-size: var(--font-size-md);
+}
+
+.entry-title {
+	margin-top: 0;
+}
+
+a {
+	color: var(--color-link);
+}
+
+a:hover {
+	color: var(--color-link-hover);
+}
+
+a:focus-visible {
+	color: var(--color-link-focus);
+	outline: 2px solid var(--color-focus);
+	outline-offset: 2px;
+}
+
+// Länkar i brödtext är understrukna hela tiden, så att de går att skilja
+// från vanlig text även utan färgseende. Vid hover växer linjen i stället.
+.entry-content a:not(.wp-block-button__link) {
+	text-decoration-line: underline;
+	text-decoration-thickness: from-font;
+	text-underline-offset: 0.18em;
+	transition: text-decoration-thickness 0.18s ease, text-underline-offset 0.18s ease,
+		color 0.18s ease;
+}
+
+.entry-content a:not(.wp-block-button__link):hover,
+.entry-content a:not(.wp-block-button__link):focus-visible {
+	text-decoration-thickness: 1.5px;
+	text-underline-offset: 0.14em;
+}
+
+// En länkad bild ska inte få en linje hängande under sig.
+.entry-content a:has(img) {
+	text-decoration: none;
+}

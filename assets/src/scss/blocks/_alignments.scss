@@ -1,0 +1,36 @@
+// Block styles
+
+.entry-content > .alignwide {
+	width: min(var(--layout-wide), calc(100vw - 3rem));
+	max-width: none;
+	margin-inline-start: 50%;
+	transform: translateX(-50%);
+}
+
+.entry-content > .alignfull {
+	width: 100vw;
+	max-width: none;
+	margin-inline-start: 50%;
+	transform: translateX(-50%);
+}
+
+// Justering inuti block-containrar, t.ex. en grupp med alignwide i ett
+// fullbreddsblock. WordPress hoppar över de här reglerna för teman utan
+// theme.json, så temat definierar dem själv.
+// :where() håller specificiteten på noll så att reglerna ovan går före.
+:where(.is-layout-constrained)
+	> :where(:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright)) {
+	max-width: var(--layout-content);
+	margin-inline: auto;
+}
+
+:where(.is-layout-constrained, .wp-block-cover__inner-container, .wp-block-group__inner-container) > .alignwide {
+	max-width: var(--layout-wide);
+	margin-inline: auto;
+}
+
+:where(.is-layout-constrained, .wp-block-cover__inner-container, .wp-block-group__inner-container) > .alignfull {
+	width: 100%;
+	max-width: none;
+	margin-inline: auto;
+}

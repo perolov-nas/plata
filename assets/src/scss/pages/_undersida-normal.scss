@@ -1,0 +1,13 @@
+body.page-template-template-undersida-normal {
+	.site-main {
+		padding: 2em 0 0 0;
+
+		@media (max-width: 1200px) {
+			padding: 1.5em;
+		}
+
+		@media (max-width: 600px) {
+			padding: 1em;
+		}
+	}
+}

@@ -1,0 +1,14 @@
+.alignwide img,
+.alignfull img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.wp-block-image,
+.wp-block-gallery,
+.wp-block-cover {
+	img {
+		border-radius: 0.5em;
+	}
+}

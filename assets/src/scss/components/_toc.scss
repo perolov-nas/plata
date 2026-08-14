@@ -1,0 +1,198 @@
+@use '../abstracts' as *;
+
+// Undersida med innehållsförteckning
+
+.site-main--wide {
+	max-width: var(--layout-wide);
+}
+
+.page-toc__grid {
+	display: grid;
+	gap: 2rem;
+}
+
+// Bred och full bredd fungerar inte i en tvåspaltig layout, så blocken
+// hålls innanför textspalten på den här mallen.
+.page-toc__grid .entry-content > .alignwide,
+.page-toc__grid .entry-content > .alignfull {
+	width: auto;
+	max-width: 100%;
+	margin-inline-start: 0;
+	transform: none;
+}
+
+// Avståndet som rubriken stannar på när man hoppar dit från förteckningen.
+.page-toc :is(h2, h3) {
+	scroll-margin-block-start: var(--toc-scroll-offset, 2em);
+}
+
+.toc__list,
+.toc__sublist {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.toc__sublist {
+	margin-inline-start: 0.5rem;
+}
+
+.toc__header {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	padding: 0.875rem 1rem;
+}
+
+.toc__title {
+	margin: 0;
+	font-weight: 700;
+	color: var(--color-text-muted);
+	margin-block-start: 0.5em !important;
+}
+
+.toc__toggle {
+	display: none;
+}
+
+.toc__toggle svg {
+	width: 1.25rem;
+	height: 1.25rem;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	transition: transform 0.18s ease;
+}
+
+.toc__toggle[aria-expanded='true'] svg {
+	transform: rotate(180deg);
+}
+
+.toc__panel {
+	padding: 0 1rem 1rem;
+}
+
+.toc__link {
+	display: block;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-base);
+	text-decoration: none;
+	margin-bottom: 0.5rem;
+}
+
+.toc__link:hover {
+	color: var(--color-link-hover);
+}
+
+.toc__link.is-active {
+	color: var(--color-link);
+	border-inline-start-color: var(--color-link);
+	font-weight: 600;
+	position: relative;
+	display: inline-flex;
+
+	&::before {
+		content: '→';
+		margin-right: 0.25em;
+		position: relative;
+		transition: all 0.2s ease;
+		font-size: inherit;
+	}
+}
+
+@media (min-width: $toc-breakpoint) {
+	.page-toc__grid {
+		grid-template-columns: minmax(0, 1fr) 18rem;
+		align-items: start;
+	}
+
+	.page-toc__grid--single {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.page-toc__grid .entry-content {
+		grid-column: 1;
+		grid-row: 1;
+	}
+
+	.page-toc__grid .toc {
+		position: sticky;
+		inset-block-start: 2em;
+		grid-column: 2;
+		grid-row: 1;
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: 0.5rem;
+		box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.1);
+
+		&.open {
+			border-bottom-left-radius: 0;
+			border-bottom-right-radius: 0;
+		}
+	}
+}
+
+@media (max-width: ($toc-breakpoint - 0.001em)) {
+	// Förteckningen ligger kvar överst och lägger sig över innehållet,
+	// därför måste rubrikerna stanna en bit längre ned.
+	.page-toc {
+		--toc-scroll-offset: calc(2em + 3.5rem);
+	}
+
+	.toc {
+		position: sticky;
+		inset-block-start: 0;
+		z-index: 20;
+		background: var(--color-background);
+		border: 1px solid var(--color-border);
+		border-radius: 0.5rem;
+		box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.1);
+	}
+
+	// Hela raden är tryckyta, inte bara chevron-ikonen.
+	.toc__toggle {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		width: 100%;
+		padding-inline-end: 1rem;
+		background: none;
+		border: 0;
+		color: var(--color-text);
+		cursor: pointer;
+	}
+
+	.toc__toggle:hover {
+		background: none;
+		color: var(--color-text);
+	}
+
+	.toc__panel {
+		position: absolute;
+		inset-inline: 0;
+		inset-block-start: 100%;
+		z-index: 1;
+		max-height: min(60vh, 24rem);
+		overflow-y: auto;
+		padding: 0.5rem 1rem 1rem;
+		background: var(--color-background);
+		border: 1px solid var(--color-border);
+		border-radius: 0 0 0.5rem 0.5rem;
+		box-shadow: 0 12px 24px -10px rgb(0 0 0 / 25%);
+	}
+
+	// Utan JavaScript går fällningen inte att styra, så listan visas som den är.
+	.js .toc__panel {
+		display: none;
+	}
+
+	.js .toc.is-open .toc__panel {
+		display: block;
+	}
+}

@@ -1,0 +1,11 @@
+.wp-block-spacer {
+	height: 2em !important;
+
+	@media (max-width: 1200px) {
+		height: 1.5em !important;
+	}
+
+	@media (max-width: 600px) {
+		height: 1em !important;
+	}
+}

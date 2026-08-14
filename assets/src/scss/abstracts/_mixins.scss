@@ -1,0 +1,10 @@
+// Understrykning som ritas ut från vänster vid hover. Görs med en bakgrund
+// i currentColor i stället för text-decoration, eftersom bredden går att
+// animera. Används i menyerna, där länkarna inte är understrukna i vila.
+@mixin animated-underline($thickness: 1px) {
+	background-image: linear-gradient(currentColor, currentColor);
+	background-repeat: no-repeat;
+	background-position: 0 100%;
+	background-size: 0 $thickness;
+	transition: background-size 0.24s ease;
+}

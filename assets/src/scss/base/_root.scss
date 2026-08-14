@@ -1,0 +1,43 @@
+:root {
+	--font-body: system-ui, sans-serif;
+	--font-heading: system-ui, sans-serif;
+	--font-size-root: 16px;
+
+	// Typskala: minvärdet gäller vid 600px och nedåt, maxvärdet från 1200px.
+	// rem + vw (aldrig enbart vw) så att texten fortfarande följer webbläsarens
+	// textstorlek och klarar 200 % zoom.
+	--font-size-sm: clamp(0.875rem, 0.85rem + 0.067vw, 0.9rem);
+	--font-size-base: clamp(1rem, 0.875rem + 0.333vw, 1.125rem);
+	--font-size-md: clamp(1.125rem, 1rem + 0.333vw, 1.25rem);
+	--font-size-lg: clamp(1.2rem, 0.994rem + 0.55vw, 1.406rem);
+	--font-size-xl: clamp(1.44rem, 1.122rem + 0.848vw, 1.758rem);
+	--font-size-2xl: clamp(1.728rem, 1.259rem + 1.252vw, 2.197rem);
+	--font-size-3xl: clamp(2.074rem, 1.401rem + 1.795vw, 2.747rem);
+
+	--line-height-body: 1.6;
+	--line-height-heading: 1.2;
+	--line-height-display: 1.1;
+
+	// Läsbar radlängd enligt WCAG (max ~80 tecken).
+	--measure: 68ch;
+	// Layoutbredderna kan ändras under Tema-inställningar.
+	--layout-wide: 1440px;
+	--layout-content: 960px;
+
+	--color-text: #1a1a1a;
+	--color-text-muted: #666666;
+	--color-heading: #1a1a1a;
+	--color-background: #ffffff;
+	--color-surface: #f5f5f5;
+	--color-border: #e5e5e5;
+	--color-header-bg: #ffffff;
+	--color-footer-bg: #f5f5f5;
+	--color-link: #0b57d0;
+	--color-link-hover: #0842a0;
+	--color-link-focus: #0842a0;
+	--color-focus: #0b57d0;
+	--color-button-bg: #1a1a1a;
+	--color-button-text: #ffffff;
+	--color-button-hover: #333333;
+	--color-button-focus: #0b57d0;
+}
