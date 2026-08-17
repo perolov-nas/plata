@@ -6,6 +6,10 @@
 	margin-block-start: 1em;
 }
 
+:root :where(.is-layout-constrained) > :first-child {
+	margin-block-start: 0;
+}
+
 .site-main {
 	max-width: var(--layout-content);
 	margin-inline: auto;
@@ -20,8 +24,21 @@
 	}
 }
 
+.entry-content {
+
+	&.entry-content--template {
+		margin-block-end: 2em;
+	}
+}
+
 .entry-content > p,
 .entry-content > ul,
 .entry-content > ol {
 	max-width: var(--measure);
+}
+
+// Första blocket i innehållet ska inte få extra toppmarginal
+// (rubriker har egna !important-värden).
+.entry-content > :first-child {
+	margin-block-start: 0 !important;
 }

@@ -59,7 +59,7 @@ while ( have_posts() ) :
 					</aside>
 				<?php endif; ?>
 
-				<div class="entry-content">
+				<div class="entry-content entry-content--template">
 					<?php
 					// Innehållet har redan passerat the_content-filtren ovan.
 					echo $toc['content']; // phpcs:ignore WordPress.Security.EscapingOutput.OutputNotEscaped

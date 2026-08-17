@@ -24,7 +24,31 @@
 			?>
 		<?php endif; ?>
 
-		<p class="footer-copy">&copy; <?php echo esc_html( date( 'Y' ) ); ?> <?php bloginfo( 'name' ); ?></p>
+		<div class="footer-meta">
+			<?php
+			$logo_id = function_exists( 'plata_get_logo_id' ) ? plata_get_logo_id() : 0;
+
+			if ( $logo_id ) :
+				?>
+				<a class="footer-branding" href="<?php echo esc_url( home_url( '/' ) ); ?>">
+					<?php
+					echo wp_get_attachment_image(
+						$logo_id,
+						'full',
+						false,
+						array(
+							'class'    => 'site-logo site-logo--footer',
+							'alt'      => '',
+							'loading'  => 'lazy',
+							'decoding' => 'async',
+						)
+					);
+					?>
+				</a>
+			<?php endif; ?>
+
+			<p class="footer-copy">&copy; <?php echo esc_html( date( 'Y' ) ); ?> <?php bloginfo( 'name' ); ?></p>
+		</div>
 	</div>
 </footer>
 

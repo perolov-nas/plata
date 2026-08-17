@@ -1,3 +1,5 @@
+@use '../abstracts' as *;
+
 .site-header {
 	width: 100%;
 	background: var(--color-header-bg);
@@ -8,6 +10,7 @@
 		flex-wrap: wrap;
 		justify-content: space-between;
 		align-items: center;
+		gap: 0.75rem 1rem;
 		max-width: var(--layout-wide);
 		margin-inline: auto;
 		padding: 2em 0;
@@ -36,6 +39,11 @@
 	max-height: 5.5rem;
 	width: auto;
 	height: auto;
+
+	@media (max-width: 600px) {
+		max-width: 8rem;
+		max-height: 4rem;
+	}
 }
 
 .site-title {
@@ -45,4 +53,26 @@
 	font-weight: 700;
 	text-decoration: none;
 	color: inherit;
+}
+
+// På mobil: logotyp till vänster, väder, sedan hamburgare längst till höger.
+@media (max-width: ($nav-breakpoint - 0.001em)) {
+	.header-content {
+		.site-branding {
+			order: 1;
+			margin-inline-end: auto;
+		}
+
+		.weather {
+			order: 2;
+		}
+
+		.site-nav-toggle {
+			order: 3;
+		}
+
+		.site-nav {
+			order: 4;
+		}
+	}
 }

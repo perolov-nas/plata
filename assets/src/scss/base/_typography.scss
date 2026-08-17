@@ -17,33 +17,30 @@ h1 {
 
 h2 {
 	font-size: var(--font-size-2xl);
-	margin-block-start: 2em !important;
 }
 
 h3 {
 	font-size: var(--font-size-xl);
-	margin-block-start: 2em !important;
-
-	// first h3 should have margin-block-start: 0em!important, otherwise it will be too close to the h2
-	&:first-child {
-		margin-block-start: 0.5em !important;
-	}
 }
 
 h4 {
 	font-size: var(--font-size-lg);
-	margin-block-start: 2em !important;
 }
 
 h5 {
 	font-size: var(--font-size-md);
-	margin-block-start: 2em !important;
 }
 
 h6 {
 	font-size: var(--font-size-base);
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
+}
+
+// Luften ovanför en rubrik behövs bara när den bryter av löpande text.
+// Står rubriken ensam, eller direkt efter en bild eller ikon, hör den
+// ihop med det som följer och ska då ligga tätt intill.
+:is(p, ul, ol, dl, blockquote, table, .wp-block-table) + :is(h2, h3, h4, h5, h6) {
 	margin-block-start: 2em !important;
 }
 
@@ -56,7 +53,7 @@ dd {
 p {
 	margin-block: 0 1em;
 
-	&:first-of-type {
+	&:first-child {
 		margin-block-start: 0 !important;
 	}
 }
@@ -79,11 +76,11 @@ a {
 	color: var(--color-link);
 }
 
-a:hover {
+a:hover:not(.wp-block-button__link) {
 	color: var(--color-link-hover);
 }
 
-a:focus-visible {
+a:focus-visible:not(.wp-block-button__link) {
 	color: var(--color-link-focus);
 	outline: 2px solid var(--color-focus);
 	outline-offset: 2px;

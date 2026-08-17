@@ -70,10 +70,6 @@
 			);
 			?>
 		<?php endif; ?>
-		<?php if ( shortcode_exists( 'vader' ) ) : ?>
-			<div class="weather">
-				<?php echo do_shortcode( '[vader plats="Tällberg"]' ); ?>
-			</div>
-		<?php endif; ?>
+		<?php do_action( 'plata_header_after_nav' ); ?>
 	</div>
 </header>
