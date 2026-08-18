@@ -244,7 +244,7 @@ function plata_render_social_link_row( $index, $network = '', $url = '' ) {
 	?>
 	<li class="plata-social-row">
 		<div class="plata-social-row__main">
-			<label class="plata-social-row__label" for="plata_social_network_<?php echo esc_attr( (string) $index ); ?>">
+			<label class="screen-reader-text" for="plata_social_network_<?php echo esc_attr( (string) $index ); ?>">
 				<?php esc_html_e( 'Nätverk', 'plata' ); ?>
 			</label>
 			<select

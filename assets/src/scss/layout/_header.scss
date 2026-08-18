@@ -55,7 +55,48 @@
 	color: inherit;
 }
 
-// På mobil: logotyp till vänster, väder, sedan hamburgare längst till höger.
+.theme-switch {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	padding: 0;
+	border: 1px solid var(--color-border);
+	border-radius: 999px;
+	background: transparent;
+	color: var(--color-text);
+	cursor: pointer;
+}
+
+.theme-switch:hover,
+.theme-switch:focus-visible {
+	background: var(--color-surface);
+}
+
+.theme-switch__icon {
+	width: 1.15rem;
+	height: 1.15rem;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.7;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.theme-switch__icon--moon {
+	display: none;
+}
+
+[data-color-scheme="dark"] .theme-switch__icon--sun {
+	display: none;
+}
+
+[data-color-scheme="dark"] .theme-switch__icon--moon {
+	display: block;
+}
+
+// På mobil: logotyp till vänster, väder + tema, sedan hamburgare längst till höger.
 @media (max-width: ($nav-breakpoint - 0.001em)) {
 	.header-content {
 		.site-branding {
@@ -63,7 +104,8 @@
 			margin-inline-end: auto;
 		}
 
-		.weather {
+		.weather,
+		.theme-switch {
 			order: 2;
 		}
 

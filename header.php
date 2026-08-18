@@ -10,6 +10,11 @@
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<script>document.documentElement.className = document.documentElement.className.replace( /\bno-js\b/, 'js' );</script>
+	<?php
+	if ( function_exists( 'plata_print_color_scheme_boot_script' ) ) {
+		plata_print_color_scheme_boot_script();
+	}
+	?>
 	<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>

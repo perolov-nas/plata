@@ -106,35 +106,6 @@ body.plata-settings-page #wpbody-content {
 	box-shadow: 0 0 0 4px rgba(47, 122, 70, 0.14);
 }
 
-.plata-welcome {
-	margin: -12px 0 36px;
-	padding: 24px 28px;
-	border-radius: var(--radius);
-	background: var(--ink);
-	color: #f4efe6;
-}
-
-.plata-welcome__kicker {
-	margin-bottom: 8px;
-	color: rgba(244, 239, 230, 0.55);
-	font-size: 11px;
-	font-weight: 650;
-	letter-spacing: 0.16em;
-	text-transform: uppercase;
-}
-
-.plata-welcome h2 {
-	font-size: clamp(22px, 3vw, 30px);
-	font-weight: 560;
-	letter-spacing: -0.03em;
-}
-
-.plata-welcome p:last-child {
-	max-width: 38rem;
-	margin-top: 8px;
-	color: rgba(244, 239, 230, 0.78);
-}
-
 .plata-shell {
 	display: grid;
 	grid-template-columns: 188px minmax(0, 1fr);
@@ -177,18 +148,7 @@ body.plata-settings-page #wpbody-content {
 }
 
 .plata-panel__head {
-	display: grid;
-	grid-template-columns: 48px minmax(0, 1fr);
-	gap: 16px;
 	margin-bottom: 28px;
-}
-
-.plata-panel__index {
-	color: var(--ink-soft);
-	font-size: 12px;
-	font-weight: 650;
-	letter-spacing: 0.12em;
-	padding-top: 8px;
 }
 
 .plata-panel h2 {
@@ -362,6 +322,95 @@ body.plata-settings-page #wpbody-content {
 	cursor: pointer;
 }
 
+.plata-toggle {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	margin-bottom: 28px;
+	cursor: pointer;
+}
+
+.plata-toggle input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+}
+
+.plata-toggle__ui {
+	flex: 0 0 auto;
+	width: 44px;
+	height: 26px;
+	margin-top: 2px;
+	border-radius: 999px;
+	background: rgba(20, 18, 15, 0.18);
+	transition: background 0.16s ease;
+}
+
+.plata-toggle__ui::after {
+	content: "";
+	display: block;
+	width: 20px;
+	height: 20px;
+	margin: 3px;
+	border-radius: 50%;
+	background: #fff;
+	transition: transform 0.16s ease;
+}
+
+.plata-toggle input:checked + .plata-toggle__ui {
+	background: var(--accent);
+}
+
+.plata-toggle input:checked + .plata-toggle__ui::after {
+	transform: translateX(18px);
+}
+
+.plata-toggle input:focus-visible + .plata-toggle__ui {
+	outline: 2px solid var(--ink);
+	outline-offset: 3px;
+}
+
+.plata-toggle__copy {
+	display: grid;
+	gap: 4px;
+}
+
+.plata-toggle__copy strong {
+	font-size: 14px;
+	font-weight: 650;
+}
+
+.plata-toggle__copy span {
+	color: var(--ink-soft);
+	font-size: 13px;
+}
+
+.plata-scheme__tabs {
+	display: flex;
+	gap: 6px;
+	margin-bottom: 22px;
+}
+
+.plata-scheme__tab {
+	min-height: 36px;
+	padding: 0 14px;
+	border: 1px solid var(--line);
+	border-radius: 999px;
+	background: transparent;
+	color: var(--ink-soft);
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.plata-scheme__tab.is-active {
+	background: var(--ink);
+	border-color: var(--ink);
+	color: #f4efe6;
+}
+
 .plata-tokens-group + .plata-tokens-group {
 	margin-top: 28px;
 }
@@ -443,15 +492,54 @@ body.plata-settings-page #wpbody-content {
 }
 
 .plata-specimen {
+	--specimen-bg: #14120f;
+	--specimen-text: #f2f2f0;
+	--specimen-heading: #f7f4ee;
+	--specimen-muted: #a8a49c;
 	padding: 32px;
+	border: 1px solid var(--line);
 	border-radius: var(--radius);
-	background: var(--ink);
-	color: #f4efe6;
+	background: var(--specimen-bg);
+	color: var(--specimen-text);
+	transition:
+		background-color 0.2s ease,
+		color 0.2s ease,
+		border-color 0.2s ease;
+}
+
+.plata-specimen__bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.plata-specimen__schemes {
+	display: flex;
+	gap: 4px;
+}
+
+.plata-specimen__scheme {
+	min-height: 28px;
+	padding: 0 10px;
+	border: 1px solid color-mix(in srgb, var(--specimen-text) 22%, transparent);
+	border-radius: 999px;
+	background: transparent;
+	color: var(--specimen-muted);
+	cursor: pointer;
+	font-size: 11px;
+	font-weight: 650;
+}
+
+.plata-specimen__scheme.is-active {
+	background: var(--specimen-text);
+	border-color: var(--specimen-text);
+	color: var(--specimen-bg);
 }
 
 .plata-specimen__label,
 .plata-specimen__meta {
-	color: rgba(244, 239, 230, 0.55);
+	color: var(--specimen-muted);
 	font-size: 11px;
 	font-weight: 650;
 	letter-spacing: 0.14em;
@@ -460,6 +548,7 @@ body.plata-settings-page #wpbody-content {
 
 .plata-specimen__heading {
 	margin: 18px 0 12px;
+	color: var(--specimen-heading);
 	font-size: clamp(28px, 4vw, 42px);
 	font-weight: 560;
 	letter-spacing: -0.04em;
@@ -468,7 +557,7 @@ body.plata-settings-page #wpbody-content {
 
 .plata-specimen__body {
 	max-width: 36rem;
-	color: rgba(244, 239, 230, 0.82);
+	color: var(--specimen-text);
 	font-size: 16px;
 	line-height: 1.55;
 }
@@ -491,33 +580,42 @@ body.plata-settings-page #wpbody-content {
 }
 
 .plata-social-row {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto auto;
+	display: flex;
+	align-items: center;
 	gap: 10px;
-	align-items: end;
 	padding: 14px 0;
 	border-bottom: 1px solid var(--line);
 }
 
-.plata-social-row__label {
-	display: block;
-	margin-bottom: 6px;
-	font-size: 12px;
-	font-weight: 650;
+.plata-social-row__main {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
 }
 
 .plata-social-row__network {
-	max-width: 220px;
-	min-height: 36px;
-	margin-bottom: 8px;
+	flex: 0 0 11rem;
+	width: 11rem;
+	max-width: 11rem;
+	min-height: 42px;
+	margin-bottom: 0;
+}
+
+.plata-social-row__url {
+	flex: 1 1 auto;
+	min-width: 0;
+	width: auto;
 }
 
 .plata-social-row__remove {
-	padding: 0 0 10px;
+	padding: 0;
 	border: 0;
 	background: none;
 	color: var(--danger);
 	cursor: pointer;
+	white-space: nowrap;
 }
 
 .plata-social-row__handle {
@@ -596,6 +694,14 @@ body.plata-settings-page #wpbody-content {
 		grid-template-columns: 1fr;
 	}
 
+	.plata-social-row__main {
+		flex-wrap: wrap;
+	}
+
+	.plata-social-row__url {
+		flex: 1 1 100%;
+	}
+
 	.plata-nav {
 		position: static;
 		grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -618,9 +724,5 @@ body.plata-settings-page #wpbody-content {
 	.plata-top {
 		align-items: flex-start;
 		flex-direction: column;
-	}
-
-	.plata-panel__head {
-		grid-template-columns: 1fr;
 	}
 }

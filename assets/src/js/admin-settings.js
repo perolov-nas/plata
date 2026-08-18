@@ -18,6 +18,74 @@ jQuery(function ($) {
 		return '';
 	}
 
+	const $scheme = $('.plata-scheme');
+	const $schemeToggle = $('.plata-scheme-toggle');
+
+	const $specimen = $('.plata-specimen');
+
+	function colorValue(scheme, key) {
+		const id = scheme === 'dark' ? '#plata_color_dark_' + key : '#plata_color_' + key;
+		return normalizeHex($(id).val()) || $(id).val() || '';
+	}
+
+	function updateSpecimenTheme(scheme) {
+		const enabled = $schemeToggle.is(':checked');
+
+		if (!enabled) {
+			scheme = 'light';
+		} else if (!scheme) {
+			scheme = $specimen.attr('data-scheme') || 'light';
+		}
+
+		if (scheme !== 'dark') {
+			scheme = 'light';
+		}
+
+		$specimen.attr('data-scheme', scheme);
+		$specimen.css({
+			'--specimen-bg': colorValue(scheme, 'background'),
+			'--specimen-text': colorValue(scheme, 'text'),
+			'--specimen-heading': colorValue(scheme, 'heading'),
+			'--specimen-muted': colorValue(scheme, 'text_muted'),
+		});
+		$specimen.find('.plata-specimen__schemes').prop('hidden', !enabled);
+		$specimen.find('.plata-specimen__scheme').removeClass('is-active');
+		$specimen.find('.plata-specimen__scheme[data-scheme="' + scheme + '"]').addClass('is-active');
+	}
+
+	function setSchemeEnabled(enabled) {
+		$scheme.attr('data-enabled', enabled ? '1' : '0');
+		$scheme.find('.plata-scheme__tabs').prop('hidden', !enabled);
+
+		if (!enabled) {
+			$scheme.find('.plata-scheme__tab').removeClass('is-active');
+			$scheme.find('.plata-scheme__tab[data-scheme="light"]').addClass('is-active');
+			$scheme.find('.plata-scheme__panel').prop('hidden', true);
+			$scheme.find('.plata-scheme__panel[data-scheme="light"]').prop('hidden', false);
+			updateSpecimenTheme('light');
+			return;
+		}
+
+		updateSpecimenTheme();
+	}
+
+	$schemeToggle.on('change', function () {
+		setSchemeEnabled($schemeToggle.is(':checked'));
+	});
+
+	$scheme.on('click', '.plata-scheme__tab', function () {
+		const scheme = $(this).data('scheme');
+		$scheme.find('.plata-scheme__tab').removeClass('is-active');
+		$(this).addClass('is-active');
+		$scheme.find('.plata-scheme__panel').prop('hidden', true);
+		$scheme.find('.plata-scheme__panel[data-scheme="' + scheme + '"]').prop('hidden', false);
+		updateSpecimenTheme(scheme);
+	});
+
+	$specimen.on('click', '.plata-specimen__scheme', function () {
+		updateSpecimenTheme($(this).data('scheme'));
+	});
+
 	$('.plata-token').each(function () {
 		const $token = $(this);
 		const $hex = $token.find('.plata-color-field');
@@ -34,13 +102,17 @@ jQuery(function ($) {
 			const hex = normalizeHex($hex.val());
 			if (hex) {
 				apply(hex);
+				updateSpecimenTheme();
 			}
 		});
 
 		$picker.on('input', function () {
 			apply($picker.val());
+			updateSpecimenTheme();
 		});
 	});
+
+	updateSpecimenTheme($schemeToggle.is(':checked') ? $specimen.attr('data-scheme') : 'light');
 
 	function updateSpecimen() {
 		const $heading = $('#plata_font_heading option:selected');

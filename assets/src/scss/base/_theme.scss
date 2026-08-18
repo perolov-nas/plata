@@ -1,0 +1,23 @@
+// Temats färgytor. light-dark() följer color-scheme på html.
+// Sparade värden från Tema-inställningar skrivs över i :root via inline-CSS.
+
+:root {
+	color-scheme: light;
+
+	--color-text: light-dark(#1a1a1a, #f2f2f0);
+	--color-text-muted: light-dark(#666666, #a8a49c);
+	--color-heading: light-dark(#1a1a1a, #f7f4ee);
+	--color-background: light-dark(#ffffff, #14120f);
+	--color-surface: light-dark(#f5f5f5, #1e1c18);
+	--color-border: light-dark(#e5e5e5, #3a3630);
+	--color-header-bg: light-dark(#ffffff, #14120f);
+	--color-footer-bg: light-dark(#f5f5f5, #1a1814);
+	--color-link: light-dark(#0b57d0, #8ec8ff);
+	--color-link-hover: light-dark(#0842a0, #b6dbff);
+	--color-link-focus: light-dark(#0842a0, #b6dbff);
+	--color-focus: light-dark(#0b57d0, #8ec8ff);
+	--color-button-bg: light-dark(#1a1a1a, #f4efe6);
+	--color-button-text: light-dark(#ffffff, #14120f);
+	--color-button-hover: light-dark(#333333, #ddd6c8);
+	--color-button-focus: light-dark(#0b57d0, #8ec8ff);
+}

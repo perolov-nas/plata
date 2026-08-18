@@ -267,8 +267,51 @@ const initScrollableTables = () => {
 	window.addEventListener('resize', update);
 };
 
+/**
+ * Ljust/mörkt läge. color-scheme styr light-dark() i CSS.
+ */
+const initThemeSwitch = () => {
+	const button = document.querySelector('.theme-switch');
+
+	if (!button) {
+		return;
+	}
+
+	const apply = (scheme) => {
+		document.documentElement.style.colorScheme = scheme;
+		document.documentElement.setAttribute('data-color-scheme', scheme);
+		button.setAttribute('aria-pressed', String(scheme === 'dark'));
+		button.setAttribute(
+			'aria-label',
+			scheme === 'dark' ? button.dataset.labelDark : button.dataset.labelLight
+		);
+
+		try {
+			localStorage.setItem('plata-color-scheme', scheme);
+		} catch (error) {
+			// localStorage kan vara avstängt.
+		}
+	};
+
+	const current =
+		document.documentElement.getAttribute('data-color-scheme') === 'dark'
+			? 'dark'
+			: 'light';
+
+	apply(current);
+
+	button.addEventListener('click', () => {
+		const next =
+			document.documentElement.getAttribute('data-color-scheme') === 'dark'
+				? 'light'
+				: 'dark';
+		apply(next);
+	});
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 	initNavigation();
 	initToc();
 	initScrollableTables();
+	initThemeSwitch();
 });

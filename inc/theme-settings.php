@@ -19,81 +19,97 @@ function plata_get_color_fields() {
 		'text'         => array(
 			'label'   => __( 'Textfärg', 'plata' ),
 			'default' => '#1a1a1a',
+			'dark'    => '#f2f2f0',
 			'group'   => 'text',
 		),
 		'text_muted'   => array(
 			'label'   => __( 'Sekundär text', 'plata' ),
 			'default' => '#666666',
+			'dark'    => '#a8a49c',
 			'group'   => 'text',
 		),
 		'heading'      => array(
 			'label'   => __( 'Rubrikfärg', 'plata' ),
 			'default' => '#1a1a1a',
+			'dark'    => '#f7f4ee',
 			'group'   => 'text',
 		),
 		'background'   => array(
 			'label'   => __( 'Bakgrund', 'plata' ),
 			'default' => '#ffffff',
+			'dark'    => '#14120f',
 			'group'   => 'surface',
 		),
 		'surface'      => array(
 			'label'   => __( 'Ytfärg (t.ex. kort/sektioner)', 'plata' ),
 			'default' => '#f5f5f5',
+			'dark'    => '#1e1c18',
 			'group'   => 'surface',
 		),
 		'border'       => array(
 			'label'   => __( 'Kantlinjer', 'plata' ),
 			'default' => '#e5e5e5',
+			'dark'    => '#3a3630',
 			'group'   => 'surface',
 		),
 		'header_bg'    => array(
 			'label'   => __( 'Bakgrund header', 'plata' ),
 			'default' => '#ffffff',
+			'dark'    => '#14120f',
 			'group'   => 'surface',
 		),
 		'footer_bg'    => array(
 			'label'   => __( 'Bakgrund footer', 'plata' ),
 			'default' => '#f5f5f5',
+			'dark'    => '#1a1814',
 			'group'   => 'surface',
 		),
 		'link'         => array(
 			'label'   => __( 'Länkfärg', 'plata' ),
 			'default' => '#0b57d0',
+			'dark'    => '#8ec8ff',
 			'group'   => 'link',
 		),
 		'link_hover'   => array(
 			'label'   => __( 'Länk hover', 'plata' ),
 			'default' => '#0842a0',
+			'dark'    => '#b6dbff',
 			'group'   => 'link',
 		),
 		'link_focus'   => array(
 			'label'   => __( 'Länk focus', 'plata' ),
 			'default' => '#0842a0',
+			'dark'    => '#b6dbff',
 			'group'   => 'link',
 		),
 		'focus'        => array(
 			'label'   => __( 'Fokusring', 'plata' ),
 			'default' => '#0b57d0',
+			'dark'    => '#8ec8ff',
 			'group'   => 'focus',
 		),
 		'button_bg'    => array(
 			'label'   => __( 'Knapp bakgrund', 'plata' ),
 			'default' => '#1a1a1a',
+			'dark'    => '#f4efe6',
 			'group'   => 'button',
 		),
 		'button_text'  => array(
 			'label'   => __( 'Knapp text', 'plata' ),
 			'default' => '#ffffff',
+			'dark'    => '#14120f',
 			'group'   => 'button',
 		),
 		'button_hover' => array(
 			'label'   => __( 'Knapp hover', 'plata' ),
 			'default' => '#333333',
+			'dark'    => '#ddd6c8',
 			'group'   => 'button',
 		),
 		'button_focus' => array(
 			'label'   => __( 'Knapp focus', 'plata' ),
 			'default' => '#0b57d0',
+			'dark'    => '#8ec8ff',
 			'group'   => 'button',
 		),
 	);
@@ -115,21 +131,75 @@ function plata_get_color_groups() {
 }
 
 /**
+ * Standardvärde för ett färgfält i ett visst läge.
+ *
+ * @param array{default: string, dark?: string} $field  Fältdefinition.
+ * @param string                                $scheme light eller dark.
+ * @return string
+ */
+function plata_get_color_field_default( $field, $scheme = 'light' ) {
+	if ( 'dark' === $scheme && ! empty( $field['dark'] ) ) {
+		return $field['dark'];
+	}
+
+	return $field['default'];
+}
+
+/**
  * Hämta sparade färger med defaults som fallback.
  *
+ * @param string $scheme light eller dark.
  * @return array<string, string>
  */
-function plata_get_colors() {
-	$saved   = get_option( 'plata_colors', array() );
+function plata_get_colors( $scheme = 'light' ) {
+	$scheme  = 'dark' === $scheme ? 'dark' : 'light';
+	$saved   = get_option( 'dark' === $scheme ? 'plata_colors_dark' : 'plata_colors', array() );
 	$colors  = array();
 	$fields  = plata_get_color_fields();
 
 	foreach ( $fields as $key => $field ) {
-		$value = isset( $saved[ $key ] ) ? $saved[ $key ] : $field['default'];
-		$colors[ $key ] = sanitize_hex_color( $value ) ? sanitize_hex_color( $value ) : $field['default'];
+		$fallback = plata_get_color_field_default( $field, $scheme );
+		$value    = isset( $saved[ $key ] ) ? $saved[ $key ] : $fallback;
+		$colors[ $key ] = sanitize_hex_color( $value ) ? sanitize_hex_color( $value ) : $fallback;
 	}
 
 	return $colors;
+}
+
+/**
+ * Standardinställningar för utseende.
+ *
+ * @return array{scheme_toggle: int}
+ */
+function plata_get_default_appearance() {
+	return array(
+		'scheme_toggle' => 0,
+	);
+}
+
+/**
+ * Hämta sparade utseendeinställningar.
+ *
+ * @return array{scheme_toggle: int}
+ */
+function plata_get_appearance() {
+	$saved = get_option( 'plata_appearance', array() );
+	$saved = is_array( $saved ) ? $saved : array();
+
+	return array(
+		'scheme_toggle' => empty( $saved['scheme_toggle'] ) ? 0 : 1,
+	);
+}
+
+/**
+ * Om sidhuvudet ska visa växeln för ljust/mörkt läge.
+ *
+ * @return bool
+ */
+function plata_is_color_scheme_toggle_enabled() {
+	$appearance = plata_get_appearance();
+
+	return (bool) $appearance['scheme_toggle'];
 }
 
 /**
@@ -466,6 +536,26 @@ function plata_register_settings_page() {
 			'default'           => array(),
 		)
 	);
+
+	register_setting(
+		'plata_settings',
+		'plata_colors_dark',
+		array(
+			'type'              => 'array',
+			'sanitize_callback' => 'plata_sanitize_colors_dark',
+			'default'           => array(),
+		)
+	);
+
+	register_setting(
+		'plata_settings',
+		'plata_appearance',
+		array(
+			'type'              => 'array',
+			'sanitize_callback' => 'plata_sanitize_appearance',
+			'default'           => plata_get_default_appearance(),
+		)
+	);
 }
 add_action( 'admin_menu', 'plata_register_settings_page' );
 
@@ -475,25 +565,62 @@ add_action( 'admin_menu', 'plata_register_settings_page' );
  * @param mixed $input Indata från formulär.
  * @return array<string, string>
  */
-function plata_sanitize_colors( $input ) {
+function plata_sanitize_color_scheme( $input, $scheme = 'light' ) {
 	$clean  = array();
 	$fields = plata_get_color_fields();
+	$scheme = 'dark' === $scheme ? 'dark' : 'light';
 
 	if ( ! is_array( $input ) ) {
 		return $clean;
 	}
 
 	foreach ( $fields as $key => $field ) {
+		$fallback = plata_get_color_field_default( $field, $scheme );
+
 		if ( empty( $input[ $key ] ) ) {
-			$clean[ $key ] = $field['default'];
+			$clean[ $key ] = $fallback;
 			continue;
 		}
 
 		$color = sanitize_hex_color( $input[ $key ] );
-		$clean[ $key ] = $color ? $color : $field['default'];
+		$clean[ $key ] = $color ? $color : $fallback;
 	}
 
 	return $clean;
+}
+
+/**
+ * Sanera ljusa färger.
+ *
+ * @param mixed $input Indata från formulär.
+ * @return array<string, string>
+ */
+function plata_sanitize_colors( $input ) {
+	return plata_sanitize_color_scheme( $input, 'light' );
+}
+
+/**
+ * Sanera mörka färger.
+ *
+ * @param mixed $input Indata från formulär.
+ * @return array<string, string>
+ */
+function plata_sanitize_colors_dark( $input ) {
+	return plata_sanitize_color_scheme( $input, 'dark' );
+}
+
+/**
+ * Sanera utseendeinställningar.
+ *
+ * @param mixed $input Indata från formulär.
+ * @return array{scheme_toggle: int}
+ */
+function plata_sanitize_appearance( $input ) {
+	$input = is_array( $input ) ? $input : array();
+
+	return array(
+		'scheme_toggle' => empty( $input['scheme_toggle'] ) ? 0 : 1,
+	);
 }
 
 /**
@@ -563,11 +690,11 @@ function plata_sanitize_branding( $input ) {
  *
  * @return array<string, string>
  */
-function plata_get_default_colors() {
+function plata_get_default_colors( $scheme = 'light' ) {
 	$defaults = array();
 
 	foreach ( plata_get_color_fields() as $key => $field ) {
-		$defaults[ $key ] = $field['default'];
+		$defaults[ $key ] = plata_get_color_field_default( $field, $scheme );
 	}
 
 	return $defaults;
@@ -604,7 +731,9 @@ function plata_handle_reset_settings() {
 
 	check_admin_referer( 'plata_reset_settings' );
 
-	update_option( 'plata_colors', plata_get_default_colors() );
+	update_option( 'plata_colors', plata_get_default_colors( 'light' ) );
+	update_option( 'plata_colors_dark', plata_get_default_colors( 'dark' ) );
+	update_option( 'plata_appearance', plata_get_default_appearance() );
 	update_option( 'plata_typography', plata_get_default_typography() );
 	update_option( 'plata_layout', plata_get_default_layout() );
 	update_option( 'plata_branding', plata_get_default_branding() );
@@ -676,15 +805,7 @@ function plata_activation_redirect() {
 
 	delete_transient( 'plata_activation_redirect' );
 
-	wp_safe_redirect(
-		add_query_arg(
-			array(
-				'page'           => 'plata-settings',
-				'plata-welcome'  => '1',
-			),
-			admin_url( 'themes.php' )
-		)
-	);
+	wp_safe_redirect( admin_url( 'themes.php?page=plata-settings' ) );
 	exit;
 }
 add_action( 'admin_init', 'plata_activation_redirect' );
@@ -836,8 +957,11 @@ function plata_render_media_field( $key, $label, $id, $help = '' ) {
  * @param string $label   Etikett.
  * @param string $value   Hex-färg.
  * @param string $default Standardfärg.
+ * @param string $name    Option-namn i formuläret.
+ * @param string $id      Fältets id.
  */
-function plata_render_color_field( $key, $label, $value, $default ) {
+function plata_render_color_field( $key, $label, $value, $default, $name = 'plata_colors', $id = '' ) {
+	$id = $id ? $id : 'plata_color_' . $key;
 	?>
 	<div class="plata-token">
 		<div class="plata-token__swatch" style="background-color: <?php echo esc_attr( $value ); ?>;">
@@ -849,13 +973,13 @@ function plata_render_color_field( $key, $label, $value, $default ) {
 			/>
 		</div>
 		<div class="plata-token__body">
-			<label class="plata-token__label" for="plata_color_<?php echo esc_attr( $key ); ?>">
+			<label class="plata-token__label" for="<?php echo esc_attr( $id ); ?>">
 				<?php echo esc_html( $label ); ?>
 			</label>
 			<input
 				type="text"
-				id="plata_color_<?php echo esc_attr( $key ); ?>"
-				name="plata_colors[<?php echo esc_attr( $key ); ?>]"
+				id="<?php echo esc_attr( $id ); ?>"
+				name="<?php echo esc_attr( $name ); ?>[<?php echo esc_attr( $key ); ?>]"
 				value="<?php echo esc_attr( $value ); ?>"
 				class="plata-color-field"
 				data-default-color="<?php echo esc_attr( $default ); ?>"
@@ -873,17 +997,29 @@ function plata_render_color_field( $key, $label, $value, $default ) {
  * @param string                $title  Gruppens rubrik.
  * @param array<string, mixed>  $fields Fält att visa.
  * @param array<string, string> $colors Sparade färger.
+ * @param string                $scheme light eller dark.
  */
-function plata_render_color_card( $title, $fields, $colors ) {
+function plata_render_color_card( $title, $fields, $colors, $scheme = 'light' ) {
 	if ( empty( $fields ) ) {
 		return;
 	}
+
+	$name = 'dark' === $scheme ? 'plata_colors_dark' : 'plata_colors';
 	?>
 	<div class="plata-tokens-group">
 		<h3 class="plata-tokens-group__title"><?php echo esc_html( $title ); ?></h3>
 		<div class="plata-tokens">
 			<?php foreach ( $fields as $key => $field ) : ?>
-				<?php plata_render_color_field( $key, $field['label'], $colors[ $key ], $field['default'] ); ?>
+				<?php
+				plata_render_color_field(
+					$key,
+					$field['label'],
+					$colors[ $key ],
+					plata_get_color_field_default( $field, $scheme ),
+					$name,
+					( 'dark' === $scheme ? 'plata_color_dark_' : 'plata_color_' ) . $key
+				);
+				?>
 			<?php endforeach; ?>
 		</div>
 	</div>
@@ -898,9 +1034,12 @@ function plata_render_settings_page() {
 		return;
 	}
 
-	$colors            = plata_get_colors();
+	$colors            = plata_get_colors( 'light' );
+	$colors_dark       = plata_get_colors( 'dark' );
 	$fields            = plata_get_color_fields();
 	$groups            = plata_get_color_groups();
+	$appearance        = plata_get_appearance();
+	$scheme_toggle     = (bool) $appearance['scheme_toggle'];
 	$typography        = plata_get_typography();
 	$typography_fields = plata_get_typography_fields();
 	$fonts             = plata_get_available_fonts();
@@ -910,7 +1049,6 @@ function plata_render_settings_page() {
 	$heading_family    = isset( $fonts[ $typography['heading'] ] ) ? $fonts[ $typography['heading'] ]['fontFamily'] : 'system-ui, sans-serif';
 	$body_family       = isset( $fonts[ $typography['body'] ] ) ? $fonts[ $typography['body'] ]['fontFamily'] : 'system-ui, sans-serif';
 	$theme             = wp_get_theme();
-	$show_welcome      = isset( $_GET['plata-welcome'] ) && '1' === $_GET['plata-welcome'];
 	$nav               = array(
 		'identitet' => __( 'Identitet', 'plata' ),
 		'farger'    => __( 'Färger', 'plata' ),
@@ -931,16 +1069,6 @@ function plata_render_settings_page() {
 			<p class="plata-top__status"><?php esc_html_e( 'Aktivt', 'plata' ); ?></p>
 		</header>
 
-		<?php if ( $show_welcome ) : ?>
-			<aside class="plata-welcome" role="status">
-				<p class="plata-welcome__kicker"><?php esc_html_e( 'Välkommen', 'plata' ); ?></p>
-				<h2><?php esc_html_e( 'Temat är aktivt. Gör det till ert.', 'plata' ); ?></h2>
-				<p>
-					<?php esc_html_e( 'Börja med logotyp, färger och typsnitt. Ändringarna gäller hela webbplatsen.', 'plata' ); ?>
-				</p>
-			</aside>
-		<?php endif; ?>
-
 		<div class="plata-shell">
 			<nav class="plata-nav" aria-label="<?php esc_attr_e( 'Sektioner', 'plata' ); ?>">
 				<?php foreach ( $nav as $id => $label ) : ?>
@@ -955,11 +1083,8 @@ function plata_render_settings_page() {
 
 				<section class="plata-panel" id="plata-identitet">
 					<header class="plata-panel__head">
-						<p class="plata-panel__index">01</p>
-						<div>
-							<h2><?php esc_html_e( 'Identitet', 'plata' ); ?></h2>
-							<p><?php esc_html_e( 'Logotyp och webbplatsikon. De två saker folk känner igen först.', 'plata' ); ?></p>
-						</div>
+						<h2><?php esc_html_e( 'Identitet', 'plata' ); ?></h2>
+						<p><?php esc_html_e( 'Logotyp och webbplatsikon. De två saker folk känner igen först.', 'plata' ); ?></p>
 					</header>
 					<div class="plata-panel__grid">
 						<?php
@@ -981,42 +1106,71 @@ function plata_render_settings_page() {
 
 				<section class="plata-panel" id="plata-farger">
 					<header class="plata-panel__head">
-						<p class="plata-panel__index">02</p>
-						<div>
-							<h2><?php esc_html_e( 'Färger', 'plata' ); ?></h2>
-							<p><?php esc_html_e( 'Klicka på en yta för att byta. Hex-värdet kan också skrivas in för hand.', 'plata' ); ?></p>
-						</div>
+						<h2><?php esc_html_e( 'Färger', 'plata' ); ?></h2>
+						<p><?php esc_html_e( 'Klicka på en yta för att byta. Hex-värdet kan också skrivas in för hand.', 'plata' ); ?></p>
 					</header>
-					<?php
-					foreach ( $groups as $group_key => $group_label ) {
-						$group_fields = array();
 
-						foreach ( $fields as $key => $field ) {
-							if ( $field['group'] === $group_key ) {
-								$group_fields[ $key ] = $field;
-							}
-						}
+					<label class="plata-toggle">
+						<input
+							type="checkbox"
+							name="plata_appearance[scheme_toggle]"
+							value="1"
+							class="plata-scheme-toggle"
+							<?php checked( $scheme_toggle ); ?>
+						/>
+						<span class="plata-toggle__ui" aria-hidden="true"></span>
+						<span class="plata-toggle__copy">
+							<strong><?php esc_html_e( 'Växel för ljust och mörkt läge', 'plata' ); ?></strong>
+							<span><?php esc_html_e( 'Visar en knapp i sidhuvudet, bredvid vädret. Avstängd sajt använder alltid ljust läge.', 'plata' ); ?></span>
+						</span>
+					</label>
 
-						plata_render_color_card( $group_label, $group_fields, $colors );
-					}
-					?>
+					<div class="plata-scheme" data-enabled="<?php echo $scheme_toggle ? '1' : '0'; ?>">
+						<div class="plata-scheme__tabs"<?php echo $scheme_toggle ? '' : ' hidden'; ?>>
+							<button type="button" class="plata-scheme__tab is-active" data-scheme="light">
+								<?php esc_html_e( 'Ljust', 'plata' ); ?>
+							</button>
+							<button type="button" class="plata-scheme__tab" data-scheme="dark">
+								<?php esc_html_e( 'Mörkt', 'plata' ); ?>
+							</button>
+						</div>
+
+						<?php foreach ( array( 'light' => $colors, 'dark' => $colors_dark ) as $scheme => $scheme_colors ) : ?>
+							<div
+								class="plata-scheme__panel"
+								data-scheme="<?php echo esc_attr( $scheme ); ?>"
+								<?php echo 'dark' === $scheme ? ' hidden' : ''; ?>
+							>
+								<?php
+								foreach ( $groups as $group_key => $group_label ) {
+									$group_fields = array();
+
+									foreach ( $fields as $key => $field ) {
+										if ( $field['group'] === $group_key ) {
+											$group_fields[ $key ] = $field;
+										}
+									}
+
+									plata_render_color_card( $group_label, $group_fields, $scheme_colors, $scheme );
+								}
+								?>
+							</div>
+						<?php endforeach; ?>
+					</div>
 				</section>
 
 				<section class="plata-panel" id="plata-typografi">
 					<header class="plata-panel__head">
-						<p class="plata-panel__index">03</p>
-						<div>
-							<h2><?php esc_html_e( 'Typografi', 'plata' ); ?></h2>
-							<p>
-								<?php
-								printf(
-									/* translators: %s: länk till Font Library */
-									esc_html__( 'Typsnitt från %s, eller systemstandard.', 'plata' ),
-									'<a href="' . esc_url( $fonts_url ) . '">' . esc_html__( 'Utseende → Typsnitt', 'plata' ) . '</a>'
-								);
-								?>
-							</p>
-						</div>
+						<h2><?php esc_html_e( 'Typografi', 'plata' ); ?></h2>
+						<p>
+							<?php
+							printf(
+								/* translators: %s: länk till Font Library */
+								esc_html__( 'Typsnitt från %s, eller systemstandard.', 'plata' ),
+								'<a href="' . esc_url( $fonts_url ) . '">' . esc_html__( 'Utseende → Typsnitt', 'plata' ) . '</a>'
+							);
+							?>
+						</p>
 					</header>
 					<div class="plata-type">
 						<div class="plata-type__controls">
@@ -1062,8 +1216,22 @@ function plata_render_settings_page() {
 								</div>
 							</div>
 						</div>
-						<div class="plata-specimen">
-							<p class="plata-specimen__label"><?php esc_html_e( 'Prov', 'plata' ); ?></p>
+						<div
+							class="plata-specimen"
+							data-scheme="light"
+							style="<?php echo esc_attr( ' --specimen-bg: ' . $colors['background'] . '; --specimen-text: ' . $colors['text'] . '; --specimen-heading: ' . $colors['heading'] . '; --specimen-muted: ' . $colors['text_muted'] . ';' ); ?>"
+						>
+							<div class="plata-specimen__bar">
+								<p class="plata-specimen__label"><?php esc_html_e( 'Prov', 'plata' ); ?></p>
+								<div class="plata-specimen__schemes"<?php echo $scheme_toggle ? '' : ' hidden'; ?>>
+									<button type="button" class="plata-specimen__scheme is-active" data-scheme="light">
+										<?php esc_html_e( 'Ljust', 'plata' ); ?>
+									</button>
+									<button type="button" class="plata-specimen__scheme" data-scheme="dark">
+										<?php esc_html_e( 'Mörkt', 'plata' ); ?>
+									</button>
+								</div>
+							</div>
 							<p class="plata-specimen__heading" style="font-family: <?php echo esc_attr( $heading_family ); ?>;">
 								<?php esc_html_e( 'Rubriker sätter tonen', 'plata' ); ?>
 							</p>
@@ -1081,11 +1249,8 @@ function plata_render_settings_page() {
 
 				<section class="plata-panel" id="plata-layout">
 					<header class="plata-panel__head">
-						<p class="plata-panel__index">04</p>
-						<div>
-							<h2><?php esc_html_e( 'Layout', 'plata' ); ?></h2>
-							<p><?php esc_html_e( 'Hur brett innehållet får bli. Fullbreddsblock tar alltid hela fönstret.', 'plata' ); ?></p>
-						</div>
+						<h2><?php esc_html_e( 'Layout', 'plata' ); ?></h2>
+						<p><?php esc_html_e( 'Hur brett innehållet får bli. Fullbreddsblock tar alltid hela fönstret.', 'plata' ); ?></p>
 					</header>
 					<div class="plata-panel__grid">
 						<div class="plata-field">
@@ -1127,11 +1292,8 @@ function plata_render_settings_page() {
 
 				<section class="plata-panel" id="plata-socialt">
 					<header class="plata-panel__head">
-						<p class="plata-panel__index">05</p>
-						<div>
-							<h2><?php esc_html_e( 'Socialt', 'plata' ); ?></h2>
-							<p><?php esc_html_e( 'Ikoner i sidfoten. Lägg till, ta bort och dra för att ändra ordning.', 'plata' ); ?></p>
-						</div>
+						<h2><?php esc_html_e( 'Socialt', 'plata' ); ?></h2>
+						<p><?php esc_html_e( 'Ikoner i sidfoten. Lägg till, ta bort och dra för att ändra ordning.', 'plata' ); ?></p>
 					</header>
 					<div class="plata-field">
 						<label class="plata-field__label" for="plata_social_heading">
@@ -1315,14 +1477,12 @@ function plata_print_selected_font_faces() {
 add_action( 'wp_head', 'plata_print_selected_font_faces', 5 );
 
 /**
- * Bygg CSS-variabler från sparade inställningar.
+ * Mappning mellan färgfält och CSS-variabler.
  *
- * @return string
+ * @return array<string, string>
  */
-function plata_get_css_variables() {
-	$colors = plata_get_colors();
-	$layout = plata_get_layout();
-	$map    = array(
+function plata_get_color_css_map() {
+	return array(
 		'text'         => '--color-text',
 		'text_muted'   => '--color-text-muted',
 		'heading'      => '--color-heading',
@@ -1340,12 +1500,36 @@ function plata_get_css_variables() {
 		'button_hover' => '--color-button-hover',
 		'button_focus' => '--color-button-focus',
 	);
+}
 
-	$rules = array();
+/**
+ * Bygg CSS-variabler från sparade inställningar.
+ *
+ * @param string $context front eller editor.
+ * @return string
+ */
+function plata_get_css_variables( $context = 'front' ) {
+	$light   = plata_get_colors( 'light' );
+	$dark    = plata_get_colors( 'dark' );
+	$layout  = plata_get_layout();
+	$map     = plata_get_color_css_map();
+	$use_ld  = 'front' === $context && plata_is_color_scheme_toggle_enabled();
+	$rules   = array();
+
+	// Ljust är default. JS sätter color-scheme: dark på html när användaren byter.
+	$rules[] = 'color-scheme: light;';
+
 	foreach ( $map as $key => $var ) {
-		if ( isset( $colors[ $key ] ) ) {
-			$rules[] = $var . ': ' . $colors[ $key ] . ';';
+		if ( ! isset( $light[ $key ] ) ) {
+			continue;
 		}
+
+		if ( $use_ld && isset( $dark[ $key ] ) ) {
+			$rules[] = $var . ': light-dark(' . $light[ $key ] . ', ' . $dark[ $key ] . ');';
+			continue;
+		}
+
+		$rules[] = $var . ': ' . $light[ $key ] . ';';
 	}
 
 	$typography = plata_get_typography();
@@ -1404,7 +1588,7 @@ function plata_get_font_faces_css() {
  * @return array<string, mixed>
  */
 function plata_add_editor_settings_styles( $settings ) {
-	$css        = plata_get_css_variables();
+	$css        = plata_get_css_variables( 'editor' );
 	$font_faces = plata_get_font_faces_css();
 	$layout     = plata_get_layout();
 
@@ -1502,6 +1686,8 @@ function plata_flush_theme_json_cache() {
 }
 add_action( 'add_option_plata_colors', 'plata_flush_theme_json_cache' );
 add_action( 'update_option_plata_colors', 'plata_flush_theme_json_cache' );
+add_action( 'add_option_plata_colors_dark', 'plata_flush_theme_json_cache' );
+add_action( 'update_option_plata_colors_dark', 'plata_flush_theme_json_cache' );
 
 /**
  * Använd vald favicon som webbplatsikon.
@@ -1523,3 +1709,55 @@ function plata_filter_site_icon_url( $url, $size, $blog ) { // phpcs:ignore Gene
 	return $icon_url ? $icon_url : (string) wp_get_attachment_url( $favicon_id );
 }
 add_filter( 'get_site_icon_url', 'plata_filter_site_icon_url', 10, 3 );
+
+/**
+ * Sätt color-scheme innan CSS laddas, så light-dark() inte blinkar.
+ */
+function plata_print_color_scheme_boot_script() {
+	if ( ! plata_is_color_scheme_toggle_enabled() ) {
+		return;
+	}
+	?>
+	<script>
+	(function () {
+		try {
+			var scheme = localStorage.getItem('plata-color-scheme');
+			if (scheme !== 'dark') {
+				scheme = 'light';
+			}
+			document.documentElement.style.colorScheme = scheme;
+			document.documentElement.setAttribute('data-color-scheme', scheme);
+		} catch (e) {}
+	})();
+	</script>
+	<?php
+}
+
+/**
+ * Rendera växeln i sidhuvudet, bredvid vädret.
+ */
+function plata_render_theme_switch() {
+	if ( ! plata_is_color_scheme_toggle_enabled() ) {
+		return;
+	}
+	?>
+	<button
+		type="button"
+		class="theme-switch"
+		aria-pressed="false"
+		aria-label="<?php esc_attr_e( 'Byt till mörkt läge', 'plata' ); ?>"
+		data-label-light="<?php esc_attr_e( 'Byt till mörkt läge', 'plata' ); ?>"
+		data-label-dark="<?php esc_attr_e( 'Byt till ljust läge', 'plata' ); ?>"
+	>
+		<svg class="theme-switch__icon theme-switch__icon--sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+			<circle cx="12" cy="12" r="4" />
+			<path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" />
+		</svg>
+		<svg class="theme-switch__icon theme-switch__icon--moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+			<path d="M15.5 3.5a8.5 8.5 0 1 0 5 13.4A7 7 0 1 1 15.5 3.5Z" />
+		</svg>
+		<span class="screen-reader-text"><?php esc_html_e( 'Byt färgtema', 'plata' ); ?></span>
+	</button>
+	<?php
+}
+add_action( 'plata_header_after_nav', 'plata_render_theme_switch', 20 );
