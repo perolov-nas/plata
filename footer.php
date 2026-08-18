@@ -24,6 +24,12 @@
 			?>
 		<?php endif; ?>
 
+		<?php
+		if ( function_exists( 'plata_render_footer_social' ) ) {
+			plata_render_footer_social();
+		}
+		?>
+
 		<div class="footer-meta">
 			<?php
 			$logo_id = function_exists( 'plata_get_logo_id' ) ? plata_get_logo_id() : 0;

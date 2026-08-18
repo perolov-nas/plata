@@ -13,6 +13,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'PLATA_TOC_META_KEY', 'plata_show_toc' );
 
 /**
+ * Rubriktext utan dekorativa element.
+ *
+ * Blocket core/accordion-heading lägger sin plusikon som ett aria-hidden
+ * span inuti rubriken. textContent skulle ta med tecknet, så allt som är
+ * dolt för hjälpmedel hoppas över även här.
+ *
+ * @param DOMNode $node Nod att läsa text ur.
+ * @return string
+ */
+function plata_get_heading_text( DOMNode $node ) {
+	if ( XML_TEXT_NODE === $node->nodeType ) {
+		return (string) $node->nodeValue;
+	}
+
+	if ( XML_ELEMENT_NODE !== $node->nodeType ) {
+		return '';
+	}
+
+	if ( $node instanceof DOMElement && 'true' === $node->getAttribute( 'aria-hidden' ) ) {
+		return '';
+	}
+
+	$text = '';
+
+	foreach ( $node->childNodes as $child ) {
+		$text .= plata_get_heading_text( $child );
+	}
+
+	return $text;
+}
+
+/**
  * Plocka ut h2 och h3 ur innehållet och se till att varje rubrik har ett id.
  *
  * Rubriker utan eget ankare får ett id härlett ur rubriktexten, så att
@@ -60,7 +92,7 @@ function plata_build_toc( $content ) {
 			continue;
 		}
 
-		$text = trim( $heading->textContent );
+		$text = trim( preg_replace( '/\s+/u', ' ', plata_get_heading_text( $heading ) ) );
 
 		if ( '' === $text ) {
 			continue;

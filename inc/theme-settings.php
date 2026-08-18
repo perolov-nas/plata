@@ -446,6 +446,26 @@ function plata_register_settings_page() {
 			'default'           => plata_get_default_branding(),
 		)
 	);
+
+	register_setting(
+		'plata_settings',
+		'plata_social_heading',
+		array(
+			'type'              => 'string',
+			'sanitize_callback' => 'plata_sanitize_social_heading',
+			'default'           => '',
+		)
+	);
+
+	register_setting(
+		'plata_settings',
+		'plata_social_links',
+		array(
+			'type'              => 'array',
+			'sanitize_callback' => 'plata_sanitize_social_links',
+			'default'           => array(),
+		)
+	);
 }
 add_action( 'admin_menu', 'plata_register_settings_page' );
 
@@ -627,6 +647,49 @@ function plata_reset_settings_notice() {
 add_action( 'admin_notices', 'plata_reset_settings_notice' );
 
 /**
+ * Markera att användaren ska tas till tema-inställningar efter aktivering.
+ */
+function plata_on_switch_theme() {
+	if ( ! current_user_can( 'edit_theme_options' ) ) {
+		return;
+	}
+
+	set_transient( 'plata_activation_redirect', '1', 60 );
+}
+add_action( 'after_switch_theme', 'plata_on_switch_theme' );
+
+/**
+ * Redirecta till tema-inställningar första gången temat aktiveras.
+ */
+function plata_activation_redirect() {
+	if ( ! get_transient( 'plata_activation_redirect' ) ) {
+		return;
+	}
+
+	if ( ! current_user_can( 'edit_theme_options' ) ) {
+		return;
+	}
+
+	if ( wp_doing_ajax() || is_network_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+		return;
+	}
+
+	delete_transient( 'plata_activation_redirect' );
+
+	wp_safe_redirect(
+		add_query_arg(
+			array(
+				'page'           => 'plata-settings',
+				'plata-welcome'  => '1',
+			),
+			admin_url( 'themes.php' )
+		)
+	);
+	exit;
+}
+add_action( 'admin_init', 'plata_activation_redirect' );
+
+/**
  * Ladda WordPress färgväljare på settings-sidan.
  *
  * @param string $hook Aktuell admin-sida.
@@ -636,23 +699,82 @@ function plata_admin_assets( $hook ) {
 		return;
 	}
 
-	$js_file = get_template_directory() . '/assets/dist/js/admin-settings.min.js';
+	$theme_uri = get_template_directory_uri();
+	$theme_dir = get_template_directory();
+	$css_file  = $theme_dir . '/assets/dist/css/admin-settings.min.css';
+	$js_file   = $theme_dir . '/assets/dist/js/admin-settings.min.js';
 
-	if ( ! file_exists( $js_file ) ) {
-		return;
+	if ( file_exists( $css_file ) ) {
+		wp_enqueue_style(
+			'plata-admin-settings',
+			$theme_uri . '/assets/dist/css/admin-settings.min.css',
+			array(),
+			(string) filemtime( $css_file )
+		);
 	}
 
 	wp_enqueue_media();
-	wp_enqueue_style( 'wp-color-picker' );
-	wp_enqueue_script(
-		'plata-admin-settings',
-		get_template_directory_uri() . '/assets/dist/js/admin-settings.min.js',
-		array( 'jquery', 'wp-color-picker' ),
-		(string) filemtime( $js_file ),
-		true
-	);
+
+	if ( file_exists( $js_file ) ) {
+		wp_enqueue_script(
+			'plata-admin-settings',
+			$theme_uri . '/assets/dist/js/admin-settings.min.js',
+			array( 'jquery', 'jquery-ui-sortable' ),
+			(string) filemtime( $js_file ),
+			true
+		);
+	}
 }
 add_action( 'admin_enqueue_scripts', 'plata_admin_assets' );
+
+/**
+ * Ge settings-sidan en egen body-klass så bakgrunden kan täcka hela ytan.
+ *
+ * @param string $classes Befintliga body-klasser.
+ * @return string
+ */
+function plata_admin_body_class( $classes ) {
+	$screen = get_current_screen();
+
+	if ( $screen && 'appearance_page_plata-settings' === $screen->id ) {
+		$classes .= ' plata-settings-page';
+	}
+
+	return $classes;
+}
+add_filter( 'admin_body_class', 'plata_admin_body_class' );
+
+/**
+ * Filnamn och storlek för en bilaga, om filen finns.
+ *
+ * @param int $attachment_id Bilaga-ID.
+ * @return array{name: string, size: string, preview: string}
+ */
+function plata_get_attachment_file_meta( $attachment_id ) {
+	$attachment_id = absint( $attachment_id );
+	$meta          = array(
+		'name'    => '',
+		'size'    => '',
+		'preview' => '',
+	);
+
+	if ( ! $attachment_id ) {
+		return $meta;
+	}
+
+	$path = get_attached_file( $attachment_id );
+	$url  = wp_get_attachment_image_url( $attachment_id, 'medium' );
+
+	$meta['preview'] = $url ? $url : (string) wp_get_attachment_url( $attachment_id );
+	$meta['name']    = $path ? basename( $path ) : get_the_title( $attachment_id );
+
+	if ( $path && is_readable( $path ) ) {
+		$formatted = size_format( (int) filesize( $path ), 0 );
+		$meta['size'] = $formatted ? (string) $formatted : '';
+	}
+
+	return $meta;
+}
 
 /**
  * Rendera mediaväljare för en bilaga.
@@ -663,41 +785,108 @@ add_action( 'admin_enqueue_scripts', 'plata_admin_assets' );
  * @param string $help  Hjälptext.
  */
 function plata_render_media_field( $key, $label, $id, $help = '' ) {
-	$id      = absint( $id );
-	$preview = $id ? wp_get_attachment_image_url( $id, 'medium' ) : '';
+	$id   = absint( $id );
+	$file = plata_get_attachment_file_meta( $id );
 	?>
-	<tr>
-		<th scope="row">
-			<label for="plata_branding_<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></label>
-		</th>
-		<td>
-			<div class="plata-media-field" data-title="<?php echo esc_attr( $label ); ?>">
-				<input
-					type="hidden"
-					id="plata_branding_<?php echo esc_attr( $key ); ?>"
-					name="plata_branding[<?php echo esc_attr( $key ); ?>]"
-					value="<?php echo esc_attr( (string) $id ); ?>"
-					class="plata-media-id"
-				/>
-				<div class="plata-media-preview"<?php echo $preview ? '' : ' hidden'; ?>>
-					<?php if ( $preview ) : ?>
-						<img src="<?php echo esc_url( $preview ); ?>" alt="" />
-					<?php endif; ?>
-				</div>
-				<p>
-					<button type="button" class="button plata-media-select">
-						<?php echo $id ? esc_html__( 'Byt bild', 'plata' ) : esc_html__( 'Välj bild', 'plata' ); ?>
-					</button>
-					<button type="button" class="button-link-delete plata-media-remove"<?php echo $id ? '' : ' hidden'; ?>>
-						<?php esc_html_e( 'Ta bort', 'plata' ); ?>
-					</button>
-				</p>
-				<?php if ( $help ) : ?>
-					<p class="description"><?php echo esc_html( $help ); ?></p>
+	<div class="plata-field">
+		<label class="plata-field__label" for="plata_branding_<?php echo esc_attr( $key ); ?>">
+			<?php echo esc_html( $label ); ?>
+		</label>
+		<?php if ( $help ) : ?>
+			<p class="plata-field__help"><?php echo esc_html( $help ); ?></p>
+		<?php endif; ?>
+		<div class="plata-upload plata-media-field" data-title="<?php echo esc_attr( $label ); ?>">
+			<input
+				type="hidden"
+				id="plata_branding_<?php echo esc_attr( $key ); ?>"
+				name="plata_branding[<?php echo esc_attr( $key ); ?>]"
+				value="<?php echo esc_attr( (string) $id ); ?>"
+				class="plata-media-id"
+			/>
+			<button type="button" class="plata-upload__dropzone plata-media-select"<?php echo $id ? ' hidden' : ''; ?>>
+				<svg class="plata-upload__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path d="M12 16V6" />
+					<path d="m8 10 4-4 4 4" />
+					<path d="M5 18h14" />
+				</svg>
+				<strong><?php esc_html_e( 'Klicka eller släpp en bild här', 'plata' ); ?></strong>
+				<span><?php esc_html_e( 'PNG, JPG eller SVG.', 'plata' ); ?></span>
+			</button>
+			<div class="plata-upload__file"<?php echo $id ? '' : ' hidden'; ?>>
+				<?php if ( $file['preview'] ) : ?>
+					<img class="plata-upload__thumb" src="<?php echo esc_url( $file['preview'] ); ?>" alt="" />
 				<?php endif; ?>
+				<div class="plata-upload__meta">
+					<span class="plata-upload__name"><?php echo esc_html( $file['name'] ); ?></span>
+					<span class="plata-upload__size"><?php echo esc_html( $file['size'] ); ?></span>
+				</div>
+				<button type="button" class="plata-upload__remove plata-media-remove">
+					<?php esc_html_e( 'Ta bort', 'plata' ); ?>
+				</button>
 			</div>
-		</td>
-	</tr>
+		</div>
+	</div>
+	<?php
+}
+
+/**
+ * Rendera ett färg-token.
+ *
+ * @param string $key     Fältnyckel.
+ * @param string $label   Etikett.
+ * @param string $value   Hex-färg.
+ * @param string $default Standardfärg.
+ */
+function plata_render_color_field( $key, $label, $value, $default ) {
+	?>
+	<div class="plata-token">
+		<div class="plata-token__swatch" style="background-color: <?php echo esc_attr( $value ); ?>;">
+			<input
+				type="color"
+				class="plata-token__picker"
+				value="<?php echo esc_attr( $value ); ?>"
+				aria-label="<?php echo esc_attr( $label ); ?>"
+			/>
+		</div>
+		<div class="plata-token__body">
+			<label class="plata-token__label" for="plata_color_<?php echo esc_attr( $key ); ?>">
+				<?php echo esc_html( $label ); ?>
+			</label>
+			<input
+				type="text"
+				id="plata_color_<?php echo esc_attr( $key ); ?>"
+				name="plata_colors[<?php echo esc_attr( $key ); ?>]"
+				value="<?php echo esc_attr( $value ); ?>"
+				class="plata-color-field"
+				data-default-color="<?php echo esc_attr( $default ); ?>"
+				spellcheck="false"
+				autocomplete="off"
+			/>
+		</div>
+	</div>
+	<?php
+}
+
+/**
+ * Rendera en grupp färg-tokens.
+ *
+ * @param string                $title  Gruppens rubrik.
+ * @param array<string, mixed>  $fields Fält att visa.
+ * @param array<string, string> $colors Sparade färger.
+ */
+function plata_render_color_card( $title, $fields, $colors ) {
+	if ( empty( $fields ) ) {
+		return;
+	}
+	?>
+	<div class="plata-tokens-group">
+		<h3 class="plata-tokens-group__title"><?php echo esc_html( $title ); ?></h3>
+		<div class="plata-tokens">
+			<?php foreach ( $fields as $key => $field ) : ?>
+				<?php plata_render_color_field( $key, $field['label'], $colors[ $key ], $field['default'] ); ?>
+			<?php endforeach; ?>
+		</div>
+	</div>
 	<?php
 }
 
@@ -718,177 +907,249 @@ function plata_render_settings_page() {
 	$fonts_url         = admin_url( 'font-library.php' );
 	$layout            = plata_get_layout();
 	$branding          = plata_get_branding();
+	$heading_family    = isset( $fonts[ $typography['heading'] ] ) ? $fonts[ $typography['heading'] ]['fontFamily'] : 'system-ui, sans-serif';
+	$body_family       = isset( $fonts[ $typography['body'] ] ) ? $fonts[ $typography['body'] ]['fontFamily'] : 'system-ui, sans-serif';
+	$theme             = wp_get_theme();
+	$show_welcome      = isset( $_GET['plata-welcome'] ) && '1' === $_GET['plata-welcome'];
+	$nav               = array(
+		'identitet' => __( 'Identitet', 'plata' ),
+		'farger'    => __( 'Färger', 'plata' ),
+		'typografi' => __( 'Typografi', 'plata' ),
+		'layout'    => __( 'Layout', 'plata' ),
+		'socialt'   => __( 'Socialt', 'plata' ),
+	);
 	?>
-	<div class="wrap">
-		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-		<p><?php esc_html_e( 'Justera temats logotyp, layout, typsnitt och färger. Ändringarna gäller globalt på webbplatsen.', 'plata' ); ?></p>
+	<div class="wrap plata-settings">
+		<header class="plata-top">
+			<div>
+				<p class="plata-top__kicker"><?php echo esc_html( $theme->get( 'Name' ) ); ?></p>
+				<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+				<p class="plata-top__lede">
+					<?php esc_html_e( 'Ett litet designsystem för hela sajten. Ändra här, se det överallt.', 'plata' ); ?>
+				</p>
+			</div>
+			<p class="plata-top__status"><?php esc_html_e( 'Aktivt', 'plata' ); ?></p>
+		</header>
 
-		<form id="plata-settings-form" method="post" action="options.php">
-			<?php settings_fields( 'plata_settings' ); ?>
+		<?php if ( $show_welcome ) : ?>
+			<aside class="plata-welcome" role="status">
+				<p class="plata-welcome__kicker"><?php esc_html_e( 'Välkommen', 'plata' ); ?></p>
+				<h2><?php esc_html_e( 'Temat är aktivt. Gör det till ert.', 'plata' ); ?></h2>
+				<p>
+					<?php esc_html_e( 'Börja med logotyp, färger och typsnitt. Ändringarna gäller hela webbplatsen.', 'plata' ); ?>
+				</p>
+			</aside>
+		<?php endif; ?>
 
-			<h2><?php esc_html_e( 'Webbplats', 'plata' ); ?></h2>
-			<table class="form-table" role="presentation">
-				<?php
-				plata_render_media_field(
-					'logo_id',
-					__( 'Logotyp', 'plata' ),
-					$branding['logo_id'],
-					__( 'Visas i sidhuvudet. PNG, JPG eller SVG rekommenderas.', 'plata' )
-				);
-				plata_render_media_field(
-					'favicon_id',
-					__( 'Favicon', 'plata' ),
-					$branding['favicon_id'],
-					__( 'Visas som webbplatsikon i webbläsarfliken. Kvadratisk bild rekommenderas.', 'plata' )
-				);
-				?>
-			</table>
-
-			<h2><?php esc_html_e( 'Typografi', 'plata' ); ?></h2>
-			<p>
-				<?php
-				printf(
-					/* translators: %s: länk till Font Library */
-					esc_html__( 'Välj bland installerade typsnitt från %s, eller systemstandard.', 'plata' ),
-					'<a href="' . esc_url( $fonts_url ) . '">' . esc_html__( 'Utseende → Typsnitt', 'plata' ) . '</a>'
-				);
-				?>
-			</p>
-			<table class="form-table" role="presentation">
-				<?php foreach ( $typography_fields as $key => $field ) : ?>
-					<tr>
-						<th scope="row">
-							<label for="plata_font_<?php echo esc_attr( $key ); ?>">
-								<?php echo esc_html( $field['label'] ); ?>
-							</label>
-						</th>
-						<td>
-							<select
-								id="plata_font_<?php echo esc_attr( $key ); ?>"
-								name="plata_typography[<?php echo esc_attr( $key ); ?>]"
-							>
-								<?php foreach ( $fonts as $font ) : ?>
-									<option
-										value="<?php echo esc_attr( $font['slug'] ); ?>"
-										<?php selected( $typography[ $key ], $font['slug'] ); ?>
-										style="font-family: <?php echo esc_attr( $font['fontFamily'] ); ?>;"
-									>
-										<?php echo esc_html( $font['name'] ); ?>
-									</option>
-								<?php endforeach; ?>
-							</select>
-						</td>
-					</tr>
+		<div class="plata-shell">
+			<nav class="plata-nav" aria-label="<?php esc_attr_e( 'Sektioner', 'plata' ); ?>">
+				<?php foreach ( $nav as $id => $label ) : ?>
+					<a class="plata-nav__link<?php echo 'identitet' === $id ? ' is-active' : ''; ?>" href="#plata-<?php echo esc_attr( $id ); ?>">
+						<?php echo esc_html( $label ); ?>
+					</a>
 				<?php endforeach; ?>
-				<tr>
-					<th scope="row">
-						<label for="plata_base_font_size"><?php esc_html_e( 'Basstorlek', 'plata' ); ?></label>
-					</th>
-					<td>
-						<input
-							type="number"
-							id="plata_base_font_size"
-							name="plata_typography[base_size]"
-							value="<?php echo esc_attr( (string) $typography['base_size'] ); ?>"
-							min="12"
-							max="24"
-							step="1"
-							class="small-text"
-						/>
-						<span>px</span>
-						<p class="description">
-							<?php esc_html_e( 'Rotens textstorlek (standard 16). Hela typskalan skalar utifrån detta värde.', 'plata' ); ?>
-						</p>
-					</td>
-				</tr>
-			</table>
+			</nav>
 
-			<h2><?php esc_html_e( 'Layout', 'plata' ); ?></h2>
-			<table class="form-table" role="presentation">
-				<tr>
-					<th scope="row">
-						<label for="plata_content_width"><?php esc_html_e( 'Innehållsbredd', 'plata' ); ?></label>
-					</th>
-					<td>
-						<input
-							type="number"
-							id="plata_content_width"
-							name="plata_layout[content_width]"
-							value="<?php echo esc_attr( (string) $layout['content_width'] ); ?>"
-							min="320"
-							max="3840"
-							step="1"
-							class="small-text"
-						/>
-						<span>px</span>
-						<p class="description">
-							<?php esc_html_e( 'Maxbredd för block med vanlig innehållsjustering.', 'plata' ); ?>
-						</p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">
-						<label for="plata_wide_width"><?php esc_html_e( 'Bredd för bred bredd', 'plata' ); ?></label>
-					</th>
-					<td>
-						<input
-							type="number"
-							id="plata_wide_width"
-							name="plata_layout[wide_width]"
-							value="<?php echo esc_attr( (string) $layout['wide_width'] ); ?>"
-							min="320"
-							max="3840"
-							step="1"
-							class="small-text"
-						/>
-						<span>px</span>
-						<p class="description">
-							<?php esc_html_e( 'Maxbredd för block med bred justering. Fullbreddsblock fyller alltid hela viewporten.', 'plata' ); ?>
-						</p>
-					</td>
-				</tr>
-			</table>
+			<form id="plata-settings-form" class="plata-main" method="post" action="options.php">
+				<?php settings_fields( 'plata_settings' ); ?>
 
-			<?php foreach ( $groups as $group_key => $group_label ) : ?>
-				<h2><?php echo esc_html( $group_label ); ?></h2>
-				<table class="form-table" role="presentation">
-					<?php foreach ( $fields as $key => $field ) : ?>
-						<?php if ( $field['group'] !== $group_key ) : ?>
-							<?php continue; ?>
-						<?php endif; ?>
-						<tr>
-							<th scope="row">
-								<label for="plata_color_<?php echo esc_attr( $key ); ?>">
-									<?php echo esc_html( $field['label'] ); ?>
+				<section class="plata-panel" id="plata-identitet">
+					<header class="plata-panel__head">
+						<p class="plata-panel__index">01</p>
+						<div>
+							<h2><?php esc_html_e( 'Identitet', 'plata' ); ?></h2>
+							<p><?php esc_html_e( 'Logotyp och webbplatsikon. De två saker folk känner igen först.', 'plata' ); ?></p>
+						</div>
+					</header>
+					<div class="plata-panel__grid">
+						<?php
+						plata_render_media_field(
+							'logo_id',
+							__( 'Logotyp', 'plata' ),
+							$branding['logo_id'],
+							__( 'Visas i sidhuvud och sidfot. PNG, JPG eller SVG.', 'plata' )
+						);
+						plata_render_media_field(
+							'favicon_id',
+							__( 'Favicon', 'plata' ),
+							$branding['favicon_id'],
+							__( 'Kvadratisk bild, gärna 512 × 512 px.', 'plata' )
+						);
+						?>
+					</div>
+				</section>
+
+				<section class="plata-panel" id="plata-farger">
+					<header class="plata-panel__head">
+						<p class="plata-panel__index">02</p>
+						<div>
+							<h2><?php esc_html_e( 'Färger', 'plata' ); ?></h2>
+							<p><?php esc_html_e( 'Klicka på en yta för att byta. Hex-värdet kan också skrivas in för hand.', 'plata' ); ?></p>
+						</div>
+					</header>
+					<?php
+					foreach ( $groups as $group_key => $group_label ) {
+						$group_fields = array();
+
+						foreach ( $fields as $key => $field ) {
+							if ( $field['group'] === $group_key ) {
+								$group_fields[ $key ] = $field;
+							}
+						}
+
+						plata_render_color_card( $group_label, $group_fields, $colors );
+					}
+					?>
+				</section>
+
+				<section class="plata-panel" id="plata-typografi">
+					<header class="plata-panel__head">
+						<p class="plata-panel__index">03</p>
+						<div>
+							<h2><?php esc_html_e( 'Typografi', 'plata' ); ?></h2>
+							<p>
+								<?php
+								printf(
+									/* translators: %s: länk till Font Library */
+									esc_html__( 'Typsnitt från %s, eller systemstandard.', 'plata' ),
+									'<a href="' . esc_url( $fonts_url ) . '">' . esc_html__( 'Utseende → Typsnitt', 'plata' ) . '</a>'
+								);
+								?>
+							</p>
+						</div>
+					</header>
+					<div class="plata-type">
+						<div class="plata-type__controls">
+							<?php foreach ( $typography_fields as $key => $field ) : ?>
+								<div class="plata-field">
+									<label class="plata-field__label" for="plata_font_<?php echo esc_attr( $key ); ?>">
+										<?php echo esc_html( $field['label'] ); ?>
+									</label>
+									<select
+										id="plata_font_<?php echo esc_attr( $key ); ?>"
+										name="plata_typography[<?php echo esc_attr( $key ); ?>]"
+										class="plata-font-select"
+										data-role="<?php echo esc_attr( $key ); ?>"
+									>
+										<?php foreach ( $fonts as $font ) : ?>
+											<option
+												value="<?php echo esc_attr( $font['slug'] ); ?>"
+												<?php selected( $typography[ $key ], $font['slug'] ); ?>
+												data-font-family="<?php echo esc_attr( $font['fontFamily'] ); ?>"
+												style="font-family: <?php echo esc_attr( $font['fontFamily'] ); ?>;"
+											>
+												<?php echo esc_html( $font['name'] ); ?>
+											</option>
+										<?php endforeach; ?>
+									</select>
+								</div>
+							<?php endforeach; ?>
+							<div class="plata-field">
+								<label class="plata-field__label" for="plata_base_font_size">
+									<?php esc_html_e( 'Basstorlek', 'plata' ); ?>
 								</label>
-							</th>
-							<td>
+								<div class="plata-inline">
+									<input
+										type="number"
+										id="plata_base_font_size"
+										name="plata_typography[base_size]"
+										value="<?php echo esc_attr( (string) $typography['base_size'] ); ?>"
+										min="12"
+										max="24"
+										step="1"
+									/>
+									<span class="plata-field__suffix">px</span>
+								</div>
+							</div>
+						</div>
+						<div class="plata-specimen">
+							<p class="plata-specimen__label"><?php esc_html_e( 'Prov', 'plata' ); ?></p>
+							<p class="plata-specimen__heading" style="font-family: <?php echo esc_attr( $heading_family ); ?>;">
+								<?php esc_html_e( 'Rubriker sätter tonen', 'plata' ); ?>
+							</p>
+							<p class="plata-specimen__body" style="font-family: <?php echo esc_attr( $body_family ); ?>;">
+								<?php esc_html_e( 'Snabba bruna räven hoppar över den lata hunden. Brödtexten ska bära längre stycken utan att trötta ögat.', 'plata' ); ?>
+							</p>
+							<p class="plata-specimen__meta">
+								<span class="plata-specimen__heading-name"><?php echo esc_html( isset( $fonts[ $typography['heading'] ] ) ? $fonts[ $typography['heading'] ]['name'] : __( 'Systemstandard', 'plata' ) ); ?></span>
+								<span aria-hidden="true">·</span>
+								<span class="plata-specimen__body-name"><?php echo esc_html( isset( $fonts[ $typography['body'] ] ) ? $fonts[ $typography['body'] ]['name'] : __( 'Systemstandard', 'plata' ) ); ?></span>
+							</p>
+						</div>
+					</div>
+				</section>
+
+				<section class="plata-panel" id="plata-layout">
+					<header class="plata-panel__head">
+						<p class="plata-panel__index">04</p>
+						<div>
+							<h2><?php esc_html_e( 'Layout', 'plata' ); ?></h2>
+							<p><?php esc_html_e( 'Hur brett innehållet får bli. Fullbreddsblock tar alltid hela fönstret.', 'plata' ); ?></p>
+						</div>
+					</header>
+					<div class="plata-panel__grid">
+						<div class="plata-field">
+							<label class="plata-field__label" for="plata_content_width">
+								<?php esc_html_e( 'Innehållsbredd', 'plata' ); ?>
+							</label>
+							<div class="plata-inline">
 								<input
-									type="text"
-									id="plata_color_<?php echo esc_attr( $key ); ?>"
-									name="plata_colors[<?php echo esc_attr( $key ); ?>]"
-									value="<?php echo esc_attr( $colors[ $key ] ); ?>"
-									class="plata-color-field"
-									data-default-color="<?php echo esc_attr( $field['default'] ); ?>"
+									type="number"
+									id="plata_content_width"
+									name="plata_layout[content_width]"
+									value="<?php echo esc_attr( (string) $layout['content_width'] ); ?>"
+									min="320"
+									max="3840"
+									step="1"
 								/>
-							</td>
-						</tr>
-					<?php endforeach; ?>
-				</table>
-			<?php endforeach; ?>
+								<span class="plata-field__suffix">px</span>
+							</div>
+						</div>
+						<div class="plata-field">
+							<label class="plata-field__label" for="plata_wide_width">
+								<?php esc_html_e( 'Bredd för bred bredd', 'plata' ); ?>
+							</label>
+							<div class="plata-inline">
+								<input
+									type="number"
+									id="plata_wide_width"
+									name="plata_layout[wide_width]"
+									value="<?php echo esc_attr( (string) $layout['wide_width'] ); ?>"
+									min="320"
+									max="3840"
+									step="1"
+								/>
+								<span class="plata-field__suffix">px</span>
+							</div>
+						</div>
+					</div>
+				</section>
 
-		</form>
+				<section class="plata-panel" id="plata-socialt">
+					<header class="plata-panel__head">
+						<p class="plata-panel__index">05</p>
+						<div>
+							<h2><?php esc_html_e( 'Socialt', 'plata' ); ?></h2>
+							<p><?php esc_html_e( 'Ikoner i sidfoten. Lägg till, ta bort och dra för att ändra ordning.', 'plata' ); ?></p>
+						</div>
+					</header>
+					<div class="plata-field">
+						<label class="plata-field__label" for="plata_social_heading">
+							<?php esc_html_e( 'Rubrik', 'plata' ); ?>
+						</label>
+						<input
+							type="text"
+							id="plata_social_heading"
+							name="plata_social_heading"
+							value="<?php echo esc_attr( plata_get_social_heading() ); ?>"
+						/>
+					</div>
+					<?php plata_render_social_links_field(); ?>
+				</section>
+			</form>
+		</div>
 
-		<div class="plata-settings-actions">
-			<?php
-			submit_button(
-				__( 'Spara inställningar', 'plata' ),
-				'primary',
-				'submit',
-				false,
-				array( 'form' => 'plata-settings-form' )
-			);
-			?>
+		<div class="plata-dock">
 			<form
 				method="post"
 				action=""
@@ -896,38 +1157,18 @@ function plata_render_settings_page() {
 				onsubmit="return confirm('<?php echo esc_js( __( 'Återställ alla tema-inställningar till standard?', 'plata' ) ); ?>');"
 			>
 				<?php wp_nonce_field( 'plata_reset_settings' ); ?>
-				<?php submit_button( __( 'Återställ till standard', 'plata' ), 'secondary', 'plata_reset_settings', false ); ?>
+				<?php submit_button( __( 'Återställ', 'plata' ), 'secondary', 'plata_reset_settings', false ); ?>
 			</form>
+			<?php
+			submit_button(
+				__( 'Spara', 'plata' ),
+				'primary',
+				'submit',
+				false,
+				array( 'form' => 'plata-settings-form' )
+			);
+			?>
 		</div>
-		<style>
-			.plata-settings-actions {
-				display: flex;
-				flex-wrap: wrap;
-				align-items: center;
-				gap: 0.5em;
-				margin: 1.5em 0;
-			}
-			.plata-reset-form {
-				margin: 0;
-			}
-			.plata-media-preview {
-				margin-bottom: 0.75rem;
-			}
-			.plata-media-preview img {
-				display: block;
-				max-width: 240px;
-				max-height: 120px;
-				width: auto;
-				height: auto;
-				background: #f0f0f1;
-				border: 1px solid #c3c4c7;
-				padding: 0.5rem;
-			}
-			.plata-media-field .button-link-delete {
-				margin-left: 0.75rem;
-				color: #b32d2e;
-			}
-		</style>
 	</div>
 	<?php
 }

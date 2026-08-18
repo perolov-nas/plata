@@ -15,6 +15,7 @@ require_once get_template_directory() . '/inc/theme-settings.php';
 require_once get_template_directory() . '/inc/toc.php';
 require_once get_template_directory() . '/inc/tables.php';
 require_once get_template_directory() . '/inc/links.php';
+require_once get_template_directory() . '/inc/social.php';
 
 /**
  * Tema-setup.

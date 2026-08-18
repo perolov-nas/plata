@@ -1,0 +1,626 @@
+// Platå – tema-inställningar.
+
+.plata-settings {
+	--ink: #14120f;
+	--ink-soft: #5c564c;
+	--paper: #f4efe6;
+	--canvas: #e7e0d4;
+	--line: rgba(20, 18, 15, 0.12);
+	--accent: #1f3d32;
+	--danger: #9b2c2c;
+	--radius: 18px;
+	box-sizing: border-box;
+	max-width: 1120px;
+	margin: 0 auto;
+	padding: 28px 20px 120px;
+	color: var(--ink);
+	font-size: 14px;
+	line-height: 1.5;
+
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+
+	h1,
+	h2,
+	h3,
+	p {
+		margin: 0;
+	}
+
+	a {
+		color: var(--accent);
+	}
+}
+
+body.plata-settings-page,
+body.plata-settings-page #wpcontent,
+body.plata-settings-page #wpbody-content {
+	background: var(--canvas, #e7e0d4);
+}
+
+body.plata-settings-page #wpfooter {
+	display: none;
+}
+
+body.plata-settings-page #wpbody-content {
+	padding-bottom: 0;
+}
+
+.plata-top {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 24px;
+	margin-bottom: 36px;
+	padding-bottom: 28px;
+	border-bottom: 1px solid var(--line);
+}
+
+.plata-top__kicker {
+	margin-bottom: 8px;
+	color: var(--ink-soft);
+	font-size: 11px;
+	font-weight: 650;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+}
+
+.plata-top h1 {
+	font-size: clamp(32px, 5vw, 48px);
+	font-weight: 560;
+	letter-spacing: -0.045em;
+	line-height: 0.95;
+}
+
+.plata-top__lede {
+	max-width: 36rem;
+	margin-top: 12px;
+	color: var(--ink-soft);
+	font-size: 15px;
+}
+
+.plata-top__status {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 7px 12px;
+	border: 1px solid var(--line);
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.35);
+	color: var(--accent);
+	font-size: 12px;
+	font-weight: 650;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.plata-top__status::before {
+	content: "";
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: #2f7a46;
+	box-shadow: 0 0 0 4px rgba(47, 122, 70, 0.14);
+}
+
+.plata-welcome {
+	margin: -12px 0 36px;
+	padding: 24px 28px;
+	border-radius: var(--radius);
+	background: var(--ink);
+	color: #f4efe6;
+}
+
+.plata-welcome__kicker {
+	margin-bottom: 8px;
+	color: rgba(244, 239, 230, 0.55);
+	font-size: 11px;
+	font-weight: 650;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+}
+
+.plata-welcome h2 {
+	font-size: clamp(22px, 3vw, 30px);
+	font-weight: 560;
+	letter-spacing: -0.03em;
+}
+
+.plata-welcome p:last-child {
+	max-width: 38rem;
+	margin-top: 8px;
+	color: rgba(244, 239, 230, 0.78);
+}
+
+.plata-shell {
+	display: grid;
+	grid-template-columns: 188px minmax(0, 1fr);
+	gap: 48px;
+	align-items: start;
+}
+
+.plata-nav {
+	position: sticky;
+	top: 52px;
+	display: grid;
+	gap: 4px;
+}
+
+.plata-nav__link {
+	display: block;
+	padding: 8px 0;
+	border: 0;
+	border-left: 2px solid transparent;
+	color: var(--ink-soft);
+	font-size: 14px;
+	text-decoration: none;
+	transition: color 0.16s ease, border-color 0.16s ease;
+}
+
+.plata-nav__link:hover,
+.plata-nav__link.is-active {
+	color: var(--ink);
+}
+
+.plata-nav__link.is-active {
+	border-left-color: var(--ink);
+	padding-left: 12px;
+	font-weight: 600;
+}
+
+.plata-main {
+	display: grid;
+	gap: 56px;
+}
+
+.plata-panel__head {
+	display: grid;
+	grid-template-columns: 48px minmax(0, 1fr);
+	gap: 16px;
+	margin-bottom: 28px;
+}
+
+.plata-panel__index {
+	color: var(--ink-soft);
+	font-size: 12px;
+	font-weight: 650;
+	letter-spacing: 0.12em;
+	padding-top: 8px;
+}
+
+.plata-panel h2 {
+	font-size: 28px;
+	font-weight: 560;
+	letter-spacing: -0.035em;
+}
+
+.plata-panel__head p {
+	margin-top: 6px;
+	color: var(--ink-soft);
+}
+
+.plata-panel__grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 18px;
+}
+
+.plata-field__label,
+.plata-token__label {
+	display: block;
+	margin-bottom: 8px;
+	font-size: 12px;
+	font-weight: 650;
+}
+
+.plata-field__help {
+	margin: -2px 0 10px;
+	color: var(--ink-soft);
+	font-size: 12px;
+}
+
+.plata-field input[type="text"],
+.plata-field input[type="number"],
+.plata-field select,
+.plata-social-row__url,
+.plata-social-row__network,
+.plata-social-add {
+	width: 100%;
+	max-width: none;
+	min-height: 42px;
+	padding: 0 12px;
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	background: var(--paper);
+	box-shadow: none;
+	color: var(--ink);
+	font-size: 13px;
+}
+
+.plata-field input[type="number"] {
+	width: 7.5em;
+}
+
+.plata-field input:focus,
+.plata-field select:focus,
+.plata-social-row__url:focus,
+.plata-social-row__network:focus {
+	border-color: var(--ink);
+	box-shadow: none;
+	outline: 2px solid transparent;
+}
+
+.plata-inline {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.plata-field__suffix {
+	color: var(--ink-soft);
+}
+
+.plata-upload {
+	padding: 16px;
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	background: var(--paper);
+}
+
+.plata-upload__dropzone {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: flex-end;
+	gap: 6px;
+	width: 100%;
+	min-height: 168px;
+	padding: 18px;
+	border: 0;
+	border-radius: 12px;
+	background:
+		linear-gradient(180deg, rgba(20, 18, 15, 0.03), rgba(20, 18, 15, 0.07)),
+		repeating-linear-gradient(
+			-45deg,
+			transparent,
+			transparent 8px,
+			rgba(20, 18, 15, 0.03) 8px,
+			rgba(20, 18, 15, 0.03) 9px
+		);
+	color: var(--ink-soft);
+	cursor: pointer;
+	text-align: left;
+}
+
+.plata-upload__dropzone:hover,
+.plata-upload.is-dragging .plata-upload__dropzone {
+	color: var(--ink);
+	background-color: rgba(31, 61, 50, 0.06);
+}
+
+.plata-upload__icon {
+	width: 22px;
+	height: 22px;
+	margin-bottom: 8px;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.6;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.plata-upload__dropzone strong {
+	color: var(--ink);
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.plata-upload__dropzone span {
+	font-size: 12px;
+}
+
+.plata-upload__file {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	min-height: 168px;
+	padding: 16px;
+	border-radius: 12px;
+	background: rgba(20, 18, 15, 0.03);
+}
+
+.plata-upload__thumb {
+	display: block;
+	width: 72px;
+	height: 72px;
+	object-fit: contain;
+	background: #fff;
+	border-radius: 10px;
+	padding: 8px;
+}
+
+.plata-upload__name {
+	display: block;
+	font-weight: 650;
+}
+
+.plata-upload__size {
+	display: block;
+	color: var(--ink-soft);
+	font-size: 12px;
+}
+
+.plata-upload__remove {
+	margin-left: auto;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--danger);
+	cursor: pointer;
+}
+
+.plata-tokens-group + .plata-tokens-group {
+	margin-top: 28px;
+}
+
+.plata-tokens-group__title {
+	margin-bottom: 12px;
+	color: var(--ink-soft);
+	font-size: 11px;
+	font-weight: 650;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
+.plata-tokens {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+	gap: 12px;
+}
+
+.plata-token {
+	overflow: hidden;
+	border: 1px solid var(--line);
+	border-radius: 14px;
+	background: var(--paper);
+}
+
+.plata-token__swatch {
+	position: relative;
+	height: 88px;
+}
+
+.plata-token__picker {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	border: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.plata-token__body {
+	padding: 12px 12px 14px;
+}
+
+.plata-token__label {
+	margin-bottom: 4px;
+}
+
+.plata-token .plata-color-field {
+	width: 100%;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--ink-soft);
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 12px;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.plata-token .plata-color-field:focus {
+	color: var(--ink);
+	outline: none;
+}
+
+.plata-type {
+	display: grid;
+	grid-template-columns: 240px minmax(0, 1fr);
+	gap: 28px;
+}
+
+.plata-type__controls {
+	display: grid;
+	gap: 18px;
+	align-content: start;
+}
+
+.plata-specimen {
+	padding: 32px;
+	border-radius: var(--radius);
+	background: var(--ink);
+	color: #f4efe6;
+}
+
+.plata-specimen__label,
+.plata-specimen__meta {
+	color: rgba(244, 239, 230, 0.55);
+	font-size: 11px;
+	font-weight: 650;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
+.plata-specimen__heading {
+	margin: 18px 0 12px;
+	font-size: clamp(28px, 4vw, 42px);
+	font-weight: 560;
+	letter-spacing: -0.04em;
+	line-height: 1.05;
+}
+
+.plata-specimen__body {
+	max-width: 36rem;
+	color: rgba(244, 239, 230, 0.82);
+	font-size: 16px;
+	line-height: 1.55;
+}
+
+.plata-specimen__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 28px;
+}
+
+.plata-social-field {
+	margin-top: 20px;
+}
+
+.plata-social-list {
+	margin: 0 0 14px;
+	padding: 0;
+	list-style: none;
+}
+
+.plata-social-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto auto;
+	gap: 10px;
+	align-items: end;
+	padding: 14px 0;
+	border-bottom: 1px solid var(--line);
+}
+
+.plata-social-row__label {
+	display: block;
+	margin-bottom: 6px;
+	font-size: 12px;
+	font-weight: 650;
+}
+
+.plata-social-row__network {
+	max-width: 220px;
+	min-height: 36px;
+	margin-bottom: 8px;
+}
+
+.plata-social-row__remove {
+	padding: 0 0 10px;
+	border: 0;
+	background: none;
+	color: var(--danger);
+	cursor: pointer;
+}
+
+.plata-social-row__handle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 42px;
+	color: var(--ink-soft);
+	cursor: grab;
+	user-select: none;
+}
+
+.plata-social-add {
+	width: auto;
+	cursor: pointer;
+}
+
+.plata-dock {
+	position: fixed;
+	right: 28px;
+	bottom: 24px;
+	z-index: 20;
+	display: flex;
+	gap: 8px;
+	padding: 8px;
+	border: 1px solid var(--line);
+	border-radius: 999px;
+	background: rgba(244, 239, 230, 0.88);
+	box-shadow: 0 12px 40px rgba(20, 18, 15, 0.12);
+	backdrop-filter: blur(16px);
+}
+
+.plata-reset-form {
+	margin: 0;
+}
+
+.plata-dock .button,
+.plata-dock .button-primary {
+	min-height: 40px;
+	padding: 0 16px;
+	border-radius: 999px;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.plata-dock .button {
+	background: transparent;
+	border-color: transparent;
+	color: var(--ink-soft);
+}
+
+.plata-dock .button-primary {
+	background: var(--ink);
+	border-color: var(--ink);
+	color: #f4efe6;
+}
+
+.plata-dock .button-primary:hover,
+.plata-dock .button-primary:focus {
+	background: #000;
+	border-color: #000;
+	color: #fff;
+}
+
+.plata-settings .notice,
+.plata-settings .updated {
+	margin: 0 0 20px;
+	border-radius: 12px;
+}
+
+@media (max-width: 960px) {
+	.plata-shell,
+	.plata-type,
+	.plata-panel__grid {
+		grid-template-columns: 1fr;
+	}
+
+	.plata-nav {
+		position: static;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		gap: 0;
+		overflow-x: auto;
+	}
+
+	.plata-nav__link,
+	.plata-nav__link.is-active {
+		padding: 8px 10px;
+		border-left: 0;
+		border-bottom: 2px solid transparent;
+		white-space: nowrap;
+	}
+
+	.plata-nav__link.is-active {
+		border-bottom-color: var(--ink);
+	}
+
+	.plata-top {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+
+	.plata-panel__head {
+		grid-template-columns: 1fr;
+	}
+}

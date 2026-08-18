@@ -4,8 +4,8 @@
   "private": true,
   "description": "WordPress-temat Platå",
   "scripts": {
-    "css": "sass assets/src/scss/style.scss assets/dist/css/style.min.css --style=compressed --no-source-map",
-    "css:watch": "sass assets/src/scss/style.scss assets/dist/css/style.min.css --style=compressed --no-source-map --watch",
+    "css": "sass assets/src/scss/style.scss:assets/dist/css/style.min.css assets/src/scss/admin-settings.scss:assets/dist/css/admin-settings.min.css --style=compressed --no-source-map",
+    "css:watch": "sass assets/src/scss/style.scss:assets/dist/css/style.min.css assets/src/scss/admin-settings.scss:assets/dist/css/admin-settings.min.css --style=compressed --no-source-map --watch",
     "js": "esbuild assets/src/js/main.js assets/src/js/admin-settings.js --bundle --minify --outdir=assets/dist/js --out-extension:.js=.min.js",
     "js:watch": "esbuild assets/src/js/main.js assets/src/js/admin-settings.js --bundle --minify --outdir=assets/dist/js --out-extension:.js=.min.js --watch",
     "build": "npm run css && npm run js",
